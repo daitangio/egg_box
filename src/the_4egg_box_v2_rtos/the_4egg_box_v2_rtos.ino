@@ -42,44 +42,16 @@ void taDa(){
 
 
 void play(int n){
-  analogWrite(greenLed,0);
-  analogWrite(redLeds,0);
-  analogWrite(blueLed,0);
-  int lx= n%3;
-  if(lx==0) {
-    analogWrite(greenLed,255);
-  }else if (lx==1){
-    analogWrite(redLeds,255);
-  }else {
-    analogWrite(blueLed,255);
-  }
   tone(speakerOut,n);
   nilThdSleepMilliseconds(115);
   noTone(speakerOut);
-  analogWrite(greenLed,0);
-  analogWrite(redLeds,0);
-  analogWrite(blueLed,0);
 
 }
 
 void playLong(int n){
-  analogWrite(greenLed,0);
-  analogWrite(redLeds,0);
-  analogWrite(blueLed,0);
-  int lx= n%3;
-  if(lx==0) {
-    analogWrite(greenLed,255);
-  }else if (lx==1){
-    analogWrite(redLeds,255);
-  }else {
-    analogWrite(blueLed,255);
-  }
   tone(speakerOut,n);
   nilThdSleepMilliseconds(115*(3/2));
   noTone(speakerOut);
-  analogWrite(greenLed,0);
-  analogWrite(redLeds,0);
-  analogWrite(blueLed,0);
 
 }
 
@@ -91,7 +63,7 @@ void setup(){
  pinMode(greenLed,OUTPUT);
 
  Serial.begin(9600);
- Serial.println("The 4EggBox RTOS");
+ Serial.println("The 4EggBox v2 RTOS");
  Serial.println();
  nilSysBegin();
 }
@@ -145,11 +117,30 @@ void fadeIn(int pin){
 }
 
 
-// #define DEBUG yeppa
+#define DEBUG yeppa
 
+
+#ifdef DEBUG
+  // Use tiny unbuffered NilRTOS NilSerial library.
+  #include <NilSerial.h>
+  // Macro to redefine Serial as NilSerial to save RAM.
+  // Remove definition to use standard Arduino Serial.
+  #define Serial NilSerial
+
+#endif
 void loop() 
 {
-    // Unused
+    // Used only on DEBUG:
+    #ifdef DEBUG
+      nilPrintStackSizes(&Serial);
+      nilPrintUnusedStack(&Serial);
+      Serial.println();
+    
+      // Delay for one second.
+      // Must not sleep in loop so use nilThdDelayMilliseconds().
+      // Arduino delay() can also be used in loop().
+      nilThdDelayMilliseconds(1000);
+    #endif
 }
 
 
@@ -196,8 +187,8 @@ NIL_THREAD(BlinkingLights,arg){
   determined by its position in the table with highest priority first.
 */
 NIL_THREADS_TABLE_BEGIN()
-NIL_THREADS_TABLE_ENTRY("thread1", Music,          NULL, waMusic, sizeof(waMusic))
-NIL_THREADS_TABLE_ENTRY("thread2", BlinkingLights, NULL, waBlinkingLights, sizeof(waBlinkingLights))
+NIL_THREADS_TABLE_ENTRY(NULL /*TH NAME*/, Music,          NULL, waMusic,          sizeof(waMusic))
+NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingLights, NULL, waBlinkingLights, sizeof(waBlinkingLights))
 NIL_THREADS_TABLE_END()
 
 
