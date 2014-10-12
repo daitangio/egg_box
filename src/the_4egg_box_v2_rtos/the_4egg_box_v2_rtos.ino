@@ -3,17 +3,18 @@
 #include <pitches_it.h>
 #include <NilRTOS.h>
 
-#define DEBUG yeppa
+// #define DEBUG yeppa
 
 const int speakerOut=A5;
 
 /*** FADER**/
-int redLeds = 9;           // the pin that the LED is attached to
+int yellowLed = 9;           // the pin that the LED is attached to
 int greenLed=6;      // Reverse pin
 int blueLed=5;  //ledgroup 3 
-const int DelayTime=5; // 44 is good
+int redLed=3;
+const int DelayTime=56; // 44 is good
 
-const float  durationBase=900;
+const float  durationBase=800;
 const float D1_3= 1/3.0;
 const float HALF= 0.5;
 const float Q   = 0.25;
@@ -57,7 +58,7 @@ const float music[]={ NOTE_FA4,1,
                       NOTE_FA4,HALF,
                       NOTE_FA4,2,
                       //+ PAUSA                      
-                      0,0,0,0
+                      -1,-1,-1,-1
                       
                      
                   };
@@ -70,7 +71,7 @@ void taDa(){
     Serial.print("MUSIC STARTS. Total Data:");
   #endif
   
-  for (int i=0; music[i] != 0;) {
+  for (int i=0; music[i] != -1;) {
     noTone(speakerOut);
     int note=(int)( ((float)music[i])  *noteSwifter);
     int duration=((int) (music[i+1]*durationBase))+1;
@@ -93,30 +94,14 @@ void taDa(){
   
 }
 
-//TODO:  Rotating flashes for super duper start
-//Make a ball of light spinning under the 3 led, slower then faster then disapear
-
-
-void play(int n){
-  tone(speakerOut,n);
-  nilThdSleepMilliseconds(115);
-  noTone(speakerOut);
-
-}
-
-void playLong(int n){
-  tone(speakerOut,n);
-  nilThdSleepMilliseconds(115*(3/2));
-  noTone(speakerOut);
-
-}
 
 
 void setup(){  
  pinMode(13, OUTPUT);
  pinMode(speakerOut, OUTPUT);
- pinMode(redLeds, OUTPUT);
+ pinMode(yellowLed, OUTPUT);
  pinMode(greenLed,OUTPUT);
+ pinMode(redLed,OUTPUT);
 
  Serial.begin(9600);
  Serial.println("The 4EggBox v2 RTOS");
@@ -124,15 +109,13 @@ void setup(){
  nilSysBegin();
 }
 
-unsigned long lastToggredLedsBlinker;
+unsigned long lastToggyellowLedBlinker;
 
 
 
 
 void fadeOut(int pin, int fadeAmount){
-  int brightness = 255;    // how bright the LED is
-//  int fadeAmount = -5;    // how many points to fade the LED by
-  
+  int brightness = 255;    // how bright the LED is  
   while(brightness >0 ){
     brightness = brightness + fadeAmount;
     analogWrite(pin, brightness);
@@ -207,29 +190,31 @@ NIL_THREAD(Music, arg) {
   while(true){
     taDa();  
     // Sleep for 10 sec
-    nilThdSleepMilliseconds(10000);  
+    nilThdSleepMilliseconds(60000);  
   }
 }
 
 
 NIL_WORKING_AREA(waBlinkingLights, 128);
 NIL_THREAD(BlinkingLights,arg){
+  fadeIn(redLed);
   while(true){
     
     /*** FADER PART */
     
-    fadeIn(redLeds);
+    fadeIn(yellowLed);
     fadeIn(blueLed);
-    fadeOut(redLeds);
+    fadeOut(yellowLed);
     fadeIn(greenLed);
+    
     //fadeOut(blueLed);
-    fadeIn(redLeds);
+    fadeIn(yellowLed);
     //fadeIn(blueLed);
     nilThdSleepMilliseconds(2500);
-    fadeOut3(blueLed,greenLed,redLeds);
+    fadeOut3(blueLed,greenLed,yellowLed);
     // turn off all
     analogWrite(greenLed,0);
-    analogWrite(redLeds,0);
+    analogWrite(yellowLed,0);
     analogWrite(blueLed,0);
     // Give some time
     nilThdSleepMilliseconds(900);
