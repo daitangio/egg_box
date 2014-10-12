@@ -3,6 +3,7 @@
 #include <pitches_it.h>
 #include <NilRTOS.h>
 
+#define DEBUG yeppa
 
 const int speakerOut=A5;
 
@@ -10,30 +11,85 @@ const int speakerOut=A5;
 int redLeds = 9;           // the pin that the LED is attached to
 int greenLed=6;      // Reverse pin
 int blueLed=5;  //ledgroup 3 
-const int DelayTime=35; // 44 is good
+const int DelayTime=5; // 44 is good
 
+const float  durationBase=900;
+const float D1_3= 1/3.0;
+const float HALF= 0.5;
+const float Q   = 0.25;
 
+// Two pair: note and duration
+const float music[]={ NOTE_FA4,1, 
+                      NOTE_LAS4 /*BEMOLLE*/ ,1, 
+                      
+                      NOTE_FA4,  D1_3,
+                      NOTE_FA4,  D1_3,
+                      NOTE_LAS4, D1_3, /*SI BEM*/
+                      
+                      NOTE_FA4,  1/2.0,
+                      NOTE_RES4, 1/2.0, /* MI BEM*/
+                      
+                      // Second 
+                      NOTE_FA4,1,
+                      NOTE_DO5,1,
+                      
+                      NOTE_FA4,D1_3,
+                      NOTE_FA4,D1_3,
+                      NOTE_DOS5,D1_3,
+                      
+                      NOTE_DOS5,HALF, // INEXACT....
+                      NOTE_LAS4,HALF, // LAB
+                       
+                      
+                      
+                      //THIRD
+                      NOTE_FA4,Q,
+                      NOTE_DO5,Q,
+                      NOTE_FA5,Q,
+                      NOTE_FA4,Q,
+                      
+                      NOTE_RES4,D1_3,     //MI bem                     
+                      NOTE_MI4,D1_3,
+                      NOTE_DO4,D1_3,
+                      
+                      
+                      NOTE_SOL4,HALF,
+                      NOTE_FA4,HALF,
+                      NOTE_FA4,2,
+                      //+ PAUSA                      
+                      0,0,0,0
+                      
+                     
+                  };
 
-
+const float noteSwifter=1 ; // Default 1
 // Boot Music
 void taDa(){
+ 
+  #ifdef DEBUG
+    Serial.print("MUSIC STARTS. Total Data:");
+  #endif
   
-  //Serial.println("TADA!");
-  play(NOTE_SI5);
-  play(NOTE_LA4);
-  play(NOTE_DO3);
-  
-  playLong(NOTE_RE3);
-  play(NOTE_MI3);
-  play(NOTE_FA3);
-  play(NOTE_RE3);
-  //play(NOTE_MI2);
-  /*
-  play(NOTE_FA2);
-  play(NOTE_SOL2);
-  play(NOTE_LA2);
-  play(NOTE_SI2);*/
-  playLong(NOTE_DO2);
+  for (int i=0; music[i] != 0;) {
+    noTone(speakerOut);
+    int note=(int)( ((float)music[i])  *noteSwifter);
+    int duration=((int) (music[i+1]*durationBase))+1;
+    #ifdef DEBUG
+    Serial.print(i); Serial.print(" - Note:");
+    Serial.print(note); Serial.print(" Dur:");
+    Serial.println(duration);    
+    #endif
+    tone(speakerOut,note);
+    nilThdSleepMilliseconds(duration);
+    noTone(speakerOut);
+    i+=2;
+    
+  }
+  noTone(speakerOut);
+  #ifdef DEBUG
+  Serial.println("MUSIC ENDS");
+  #endif
+ 
   
 }
 
@@ -117,7 +173,7 @@ void fadeIn(int pin){
 }
 
 
-#define DEBUG yeppa
+
 
 
 #ifdef DEBUG
@@ -149,7 +205,7 @@ NIL_WORKING_AREA(waMusic, 128);
 
 NIL_THREAD(Music, arg) {
   while(true){
-    taDa();
+    taDa();  
     // Sleep for 10 sec
     nilThdSleepMilliseconds(10000);  
   }
