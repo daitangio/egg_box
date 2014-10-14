@@ -22,7 +22,7 @@ const float HALF= 0.5;
 const float Q   = 0.25;
 
 // Two pair: note and duration
-const float music[]={ NOTE_FA4,1, 
+const float music[] /*PROGMEM*/ ={ NOTE_FA4,1, 
                       NOTE_LAS4 /*BEMOLLE*/ ,1, 
                       
                       NOTE_FA4,  D1_3,
@@ -230,9 +230,29 @@ NIL_THREAD(BlinkingLights,arg){
 // Very tiny stack for this red alerter
 NIL_WORKING_AREA(waBlinkingRed, 64);
 NIL_THREAD(BlinkingRed,arg){
+  const int minBright=100;
+  const int maxBright=255;
   while(true){
-    fadeIn(redLed);
-    fadeOut(redLed, -20);
+    int pin=redLed;
+    int brightness = minBright;    // how bright the LED is
+    int fadeAmount = 5;    // how many points to fade the LED by
+  
+    analogWrite(pin, brightness);
+    // fade in,,,,
+    while(brightness <maxBright ){
+      brightness = brightness + fadeAmount;
+      analogWrite(pin, brightness);
+      nilThdSleepMilliseconds(DelayTime);
+    }
+    
+    // fad out...
+    while(brightness > minBright ){
+      brightness = brightness - fadeAmount;
+      analogWrite(pin, brightness);
+      nilThdSleepMilliseconds(DelayTime);
+    }
+    
+    
   }
 }
 
