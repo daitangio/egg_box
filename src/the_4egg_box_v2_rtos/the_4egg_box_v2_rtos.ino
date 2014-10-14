@@ -1,9 +1,11 @@
 
-
+/** EGG BOX WITH 4 Independent PWM light and one powerful speaker.
+  * Red Led rocks a lot
+  */
 #include <pitches_it.h>
 #include <NilRTOS.h>
 
-// #define DEBUG yeppa
+#define DEBUG yeppa
 
 const int speakerOut=A5;
 
@@ -11,10 +13,10 @@ const int speakerOut=A5;
 int yellowLed = 9;           // the pin that the LED is attached to
 int greenLed=6;      // Reverse pin
 int blueLed=5;  //ledgroup 3 
-int redLed=3;
-const int DelayTime=56; // 44 is good
+int redLed=10;  //PWM 3 get conflict with sound
+const int DelayTime=44; // 44 is good
 
-const float  durationBase=800;
+const float  durationBase=750;
 const float D1_3= 1/3.0;
 const float HALF= 0.5;
 const float Q   = 0.25;
@@ -118,6 +120,7 @@ void fadeOut(int pin, int fadeAmount){
   int brightness = 255;    // how bright the LED is  
   while(brightness >0 ){
     brightness = brightness + fadeAmount;
+    if(brightness<0) { brightness=0;};
     analogWrite(pin, brightness);
     nilThdSleepMilliseconds(DelayTime);
   }
@@ -187,8 +190,9 @@ void loop()
 NIL_WORKING_AREA(waMusic, 128);
 
 NIL_THREAD(Music, arg) {
+  taDa();  
   while(true){
-    taDa();  
+    
     // Sleep for 10 sec
     nilThdSleepMilliseconds(60000);  
   }
@@ -197,7 +201,7 @@ NIL_THREAD(Music, arg) {
 
 NIL_WORKING_AREA(waBlinkingLights, 128);
 NIL_THREAD(BlinkingLights,arg){
-  fadeIn(redLed);
+  //fadeIn(redLed);
   while(true){
     
     /*** FADER PART */
@@ -223,6 +227,16 @@ NIL_THREAD(BlinkingLights,arg){
   }
 }
 
+// Very tiny stack for this red alerter
+NIL_WORKING_AREA(waBlinkingRed, 64);
+NIL_THREAD(BlinkingRed,arg){
+  while(true){
+    fadeIn(redLed);
+    fadeOut(redLed, -20);
+  }
+}
+
+
 /** Thread static table 
   A thread's priority is
   determined by its position in the table with highest priority first.
@@ -230,6 +244,7 @@ NIL_THREAD(BlinkingLights,arg){
 NIL_THREADS_TABLE_BEGIN()
 NIL_THREADS_TABLE_ENTRY(NULL /*TH NAME*/, Music,          NULL, waMusic,          sizeof(waMusic))
 NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingLights, NULL, waBlinkingLights, sizeof(waBlinkingLights))
+NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingRed, NULL, waBlinkingRed, sizeof(waBlinkingRed))
 NIL_THREADS_TABLE_END()
 
 
