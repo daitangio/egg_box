@@ -1,0 +1,212 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+		]
+	},
+	"buffers":
+	[
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/C/giorgi/egg_box"
+	],
+	"file_history":
+	[
+		"/C/giorgi/3dprinter_sensor/src/libraries/EventManager/EventManager.h",
+		"/C/giorgi/icbpi/analytic-functions-tutorial/sql_101_examples_script.sql",
+		"/C/giorgi/gundam/smartsync/build.gradle",
+		"/C/giorgi/icbpi/sistema_pagamenti_backup.sql",
+		"/C/Users/giorgig/AppData/Local/Temp/build462902498362435795.tmp/sketch_sep30a.cpp.d",
+		"/C/Users/giorgig/AppData/Local/Temp/build462902498362435795.tmp/sketch_sep30a.cpp.eep",
+		"/C/Users/giorgig/AppData/Local/Temp/build462902498362435795.tmp/sketch_sep30a.cpp.hex",
+		"/C/Users/giorgig/AppData/Local/Temp/build462902498362435795.tmp/sketch_sep30a.cpp.elf",
+		"/C/giorgi/3dprinter_sensor/src/libraries/jeelib/Ports.cpp",
+		"/C/giorgi/3dprinter_sensor/src/libraries/dht11_lib_jj/dht11.h",
+		"/C/giorgi/3dprinter_sensor/src/libraries/dht11_lib_jj/dht11.cpp",
+		"/C/giorgi/3dprinter_sensor/src/libraries/EventManager/EventManager.cpp",
+		"/C/giorgi/3dprinter_sensor/src/libraries/jeelib/JeeLib.h",
+		"/C/giorgi/3dprinter_sensor/src/libraries/Dht_Library/Makefile",
+		"/C/giorgi/3dprinter_sensor/src/libraries/Dht_Library/Dht11.cpp",
+		"/C/giorgi/3dprinter_sensor/src/libraries/NilRTOS/nil.h",
+		"/C/giorgi/3dprinter_sensor/src/libraries/NilRTOS/nilconf.h",
+		"/C/giorgi/3dprinter_sensor/src/libraries/NilRTOS/nil.c",
+		"/C/giorgi/Sublime Text3 portable Build 3059 x64/changelog.txt",
+		"/C/giorgi/intesa/anage/anage-refactorying.org",
+		"/C/giorgi/3dprinter_sensor/src/libraries/Webduino/WebServer.h",
+		"/C/giorgi/3dprinter_sensor/src/libraries/NilRTOS/NilRTOS.c",
+		"/C/giorgi/3dprinter_sensor/src/libraries/NilRTOS/NilRTOS.h",
+		"/C/giorgi/3dprinter_sensor/src/libraries/NilRTOS/nilcore.c",
+		"/C/giorgi/ht/README.md",
+		"/C/giorgi/ubis/quadrature/report/queries.sql",
+		"/C/pie/layerdirete.root/channel-manager-in/src/main/resources/com/vtpie/layerdirete/channelmanager/in/integration/channelmanager_in.xml",
+		"/C/giorgi/3dprinter_sensor/src/sysTest/tmp.c",
+		"/C/tmp/CCProxy.ini",
+		"/C/giorgi/vodafone/Exchange2010SP1vm/SLC-DC01/Readme.txt"
+	],
+	"find":
+	{
+		"height": 26.0
+	},
+	"find_in_files":
+	{
+		"height": 102.0,
+		"where_history":
+		[
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"SISTEM_PAGAMENTI_CLIP_MV",
+			"Friedli",
+			"Dovichi",
+			"Sleepy",
+			"EventListener",
+			"NIL_CFG_NUM_THREADS",
+			"nilDbgAssert",
+			"nilSchGoSleepTimeoutS",
+			"nilThdSleepUntilS",
+			"nilThdSleep",
+			"port_lock()",
+			"nilSysLock",
+			"nilThdSleepS",
+			"nilThdSleep",
+			"printP",
+			"P(",
+			"printP",
+			"webServerHeader",
+			"P(",
+			"processConnection",
+			"serve"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"SISTEM_PAGAMENTI_DUP_MV"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"sheets":
+			[
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"project": "egg_project.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 278.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
