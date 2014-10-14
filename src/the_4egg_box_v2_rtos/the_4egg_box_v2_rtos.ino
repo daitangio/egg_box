@@ -22,6 +22,7 @@ const float HALF= 0.5;
 const float Q   = 0.25;
 
 // Two pair: note and duration
+// This stuff go in ram so it is a pity but we cannot fix it without continuous swapping
 const float music[] /*PROGMEM*/ ={ NOTE_FA4,1, 
                       NOTE_LAS4 /*BEMOLLE*/ ,1, 
                       
@@ -78,8 +79,8 @@ void taDa(){
     int note=(int)( ((float)music[i])  *noteSwifter);
     int duration=((int) (music[i+1]*durationBase))+1;
     #ifdef DEBUG
-    Serial.print(i); Serial.print(" - Note:");
-    Serial.print(note); Serial.print(" Dur:");
+    Serial.print(i); Serial.print(F(" - Note:"));
+    Serial.print(note); Serial.print(F(" Dur:"));
     Serial.println(duration);    
     #endif
     tone(speakerOut,note);
@@ -106,7 +107,7 @@ void setup(){
  pinMode(redLed,OUTPUT);
 
  Serial.begin(9600);
- Serial.println("The 4EggBox v2 RTOS");
+ Serial.println(F("The 4EggBox v2.1 RTOS"));
  Serial.println();
  nilSysBegin();
 }
@@ -199,7 +200,7 @@ NIL_THREAD(Music, arg) {
 }
 
 
-NIL_WORKING_AREA(waBlinkingLights, 128);
+NIL_WORKING_AREA(waBlinkingLights, 64);
 NIL_THREAD(BlinkingLights,arg){
   //fadeIn(redLed);
   while(true){
@@ -227,10 +228,10 @@ NIL_THREAD(BlinkingLights,arg){
   }
 }
 
-// Very tiny stack for this red alerter
-NIL_WORKING_AREA(waBlinkingRed, 64);
+// Very tiny stack for this red alerter: we economize on the rest
+NIL_WORKING_AREA(waBlinkingRed, 8);
 NIL_THREAD(BlinkingRed,arg){
-  const int minBright=100;
+  const int minBright=50;
   const int maxBright=255;
   while(true){
     int pin=redLed;
