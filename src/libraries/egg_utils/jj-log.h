@@ -4,27 +4,36 @@
 
 #ifdef DEBUG_LOG
 
+
 // Ensure Serial and other stuff is  in:
 #include <Arduino.h>
 
 // Ensure F() macro is in
 #include <WString.h>
 
+
+// General purpose function to save memory: works only on static messages
+// 212 bytes vs 224 bytes consumed of global dynamic memory
+#define p(x)	Serial.print(F(x));
+
+// VERSION TO COMPARE SAVINGS: #define p(x)	Serial.print(x);
+
+
 inline void jj_do_debug_log(int line, String msg){
-	Serial.print(" [LOG] ");
+	p(" [LOG] ");
 	Serial.print(line);
-	Serial.print(" ");
+	p(" ");
 	Serial.println(msg);		
 }
 
 
 // Macro and template can be combined to get static code
 template<class exprType> inline void jj_do_debug_describe(int line, String expr, exprType result ){
-	Serial.print(" [LOG] ");
+	p(" [LOG] ");
 	Serial.print(line);
-	Serial.print(" ");
+	p(" ");
 	Serial.print(expr);
-	Serial.print(" = ");
+	p(" = ");
 	Serial.print(result);
 }
 

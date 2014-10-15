@@ -13,7 +13,7 @@ void setup() {
 	say("Ready to rock");
 	jjAssert(1==1);
 	describe(7+3);
-	Serial.print("This will fail:");
+	Serial.print(F("This will fail:"));
 	jjAssert(1+1==4);
 }
 
