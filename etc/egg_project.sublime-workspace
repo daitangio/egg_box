@@ -80,9 +80,7 @@
 		"/C/giorgi/egg_box/NilRTOS-Arduino/libraries",
 		"/C/giorgi/egg_box/src",
 		"/C/giorgi/egg_box/src/libraries",
-		"/C/giorgi/egg_box/src/libraries/egg_utils",
-		"/C/giorgi/egg_box/src/libraries/NilRTOS/examples",
-		"/C/giorgi/egg_box/src/libraries/NilRTOS/examples/nilTestSem"
+		"/C/giorgi/egg_box/src/libraries/egg_utils"
 	],
 	"file_history":
 	[
