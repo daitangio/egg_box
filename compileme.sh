@@ -12,7 +12,9 @@ export BUILD_PATH=$EGG_BOX/build
 mkdir -p $BUILD_PATH
 cd $ARDUINO_HOME
 echo Patching....
-echo 'compiler.cpp.extra_flags=-DEXTRA_CPP_FEATURE  -std=gnu++0x ' >$ARDUINO_HOME/hardware/arduino/avr/platform.local.txt
+# Only GCC 4.7 and later support -std=c++11 .... -std=gnu++0x 
+echo "compiler.cpp.extra_flags=-DEXTRA_CPP_FEATURE  -std=c++11 -std=gnu++11 " >$ARDUINO_HOME/hardware/arduino/avr/platform.local.txt
+
 echo Issuing compilation 
 # extra_flags did not work!
 time ./arduino  --pref build.path=$BUILD_PATH    --verify --board arduino:avr:uno  $EGG_BOX/./src/lambda_test/lambda_test.ino
