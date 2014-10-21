@@ -11,8 +11,12 @@ export EGG_BOX=$HOME/egg_box
 export BUILD_PATH=$EGG_BOX/build
 mkdir -p $BUILD_PATH
 cd $ARDUINO_HOME
+echo Patching....
+echo 'compiler.cpp.extra_flags=-DEXTRA_CPP_FEATURE  -std=gnu++0x ' >$ARDUINO_HOME/hardware/arduino/avr/platform.local.txt
 echo Issuing compilation 
-time ./arduino  --pref build.path=$BUILD_PATH    --verify --board arduino:avr:uno  $EGG_BOX/./src/the_4egg_box_v2_rtos/the_4egg_box_v2_rtos.ino
+# extra_flags did not work!
+time ./arduino  --pref build.path=$BUILD_PATH    --verify --board arduino:avr:uno  $EGG_BOX/./src/lambda_test/lambda_test.ino
+echo "Compilation went well"
 echo "Dumping Assembly...."
 ./hardware/tools/avr/bin/avr-objdump.exe  -S $BUILD_PATH/*.cpp.elf > $EGG_BOX/sketch.asm
 cd $EGG_BOX
