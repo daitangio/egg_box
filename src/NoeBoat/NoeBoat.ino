@@ -5,135 +5,25 @@
 #include <pitches_it.h>
 #include <NilRTOS.h>
 
-#define DEBUG yeppa
+// #define DEBUG yeppa
 
-const int speakerOut=A5;
+// const int speakerOut=A5;
 
 /*** FADER**/
 int yellowLed = 9;           // the pin that the LED is attached to
 int greenLed=6;      // Reverse pin
 int blueLed=5;  //ledgroup 3 
-int redLed=10;  //PWM 3 get conflict with sound
+int redLed=10;  // PWM 3 get conflict with sound
 const int DelayTime=44; // 44 is good
 
-const float  durationBase=900;
-const float D1_3= 0.33;
 
-const float HALF= 0.5;
-const float Q   = 0.25;
 
-// Two pair: note and duration
-// This stuff go in ram so it is a pity but we cannot fix it without continuous swapping
-const float music[]  ={ 
-  NOTE_DO4,1,
-  NOTE_RE4,1,
-  NOTE_MI4,1,
-  NOTE_FA4,1,
-  NOTE_SOL4,1,
-  NOTE_LA4,1,
-  NOTE_SI4,1,
-  NOTE_DO4,1,
-  NOTE_SI4,1,
-  NOTE_LA4,1  
-};
-/* EVA
-const float music[]  ={ 
-                      
-                      NOTE_DO4,1, 
-                      NOTE_RES4,1,  //MIS
-                      NOTE_FA4,1,
-                      
-                      NOTE_MI4,1, // BAD???
-                      
-                      NOTE_FA4,1,
-                      
-                      NOTE_FA4, Q,
-                      NOTE_FA4, Q,
-                      NOTE_LAS4, Q , // SIB
-                      NOTE_SOLS1,Q , //LAB
-                      
-                      NOTE_SOL4, D1_3,
-                      NOTE_FA4,  D1_3,
-                      NOTE_SOL4, D1_3,                      
-                      0, Q,
-                      
-                      
-                      // Strofa 2
-                      NOTE_SOL4, 1,
-                      NOTE_LAS4, 1 , // SIB
-                      
-                      NOTE_DO4,  1,
-                      NOTE_FA4,  1,
-                      NOTE_RES4,1,  // MIB
-                      
-                      
-                      // Strofa 3
-                      NOTE_LAS4, Q , // SIB
-                      NOTE_SI4, Q,
-                      NOTE_SOL4, Q,
-                      NOTE_SI4, Q,
-                      
-                      NOTE_SI4, Q,
-                      NOTE_DO4, Q,
-                      
-                      NOTE_DO4, 1
-                      
-                      //+ PAUSA                      
-                      -1,-1,-1,-1
-                      
-                     
-                  };
-*/
-const float noteSwifter=1 ; // Default 1
-// Boot Music
-void taDa(){
- 
-  #ifdef DEBUG
-    Serial.println("MUSIC STARTS. Total Data:");
-  #endif
-  // See http://wiki.evageeks.org/A_Cruel_Angel%27s_Thesis
-  Serial.println(F("Like a cruel angel,"));
-  Serial.println(F("young boy, become the legend!"));
-  //int noteCounter=1;
-  float contaStrofa=1;
-  for (int i=0; music[i] != -1;) {
-    noTone(speakerOut);
-    int note=(int)( ((float)music[i])  *noteSwifter);
-    float mdur=music[i+1];
-    int duration=((int) (mdur*durationBase))+1;
-    #ifdef DEBUG
-    Serial.print(contaStrofa); Serial.print(F(" - Note:"));
-    Serial.print(note); Serial.print(F(" Dur:"));
-    Serial.println(duration);    
-    #endif
-    if(note!=0) {
-      tone(speakerOut,note);
-    }else {
-      noTone(speakerOut);
-    }
-    
-    nilThdSleepMilliseconds(duration);
-    contaStrofa+=mdur;
-    if(contaStrofa>4) {
-      contaStrofa -=4;
-    }
-    noTone(speakerOut);
-    i+=2;
-    
-  }
-  noTone(speakerOut);
-  #ifdef DEBUG
-  Serial.println("MUSIC ENDS");
-  #endif
- 
-  
-}
 
 
 
 void setup(){  
  pinMode(13, OUTPUT);
- pinMode(speakerOut, OUTPUT);
+ //pinMode(speakerOut, OUTPUT);
  pinMode(yellowLed, OUTPUT);
  pinMode(greenLed,OUTPUT);
  pinMode(redLed,OUTPUT);
@@ -219,17 +109,7 @@ void loop()
 }
 
 
-// Declare a stack with 128 bytes beyond context switch and interrupt needs.
-NIL_WORKING_AREA(waMusic, 128);
 
-NIL_THREAD(Music, arg) {
-  taDa();  
-  while(true){
-    
-    // Sleep for 10 sec
-    nilThdSleepMilliseconds(60000);  
-  }
-}
 
 
 NIL_WORKING_AREA(waBlinkingLights, 64);
@@ -266,6 +146,7 @@ NIL_THREAD(BlinkingRed,arg){
   const int minBright=25;
   const int maxBright=255;
   while(true){
+    digitalWrite(13, HIGH); 
     int pin=redLed;
     int brightness = minBright;    // how bright the LED is
     int fadeAmount = 5;    // how many points to fade the LED by
@@ -277,7 +158,7 @@ NIL_THREAD(BlinkingRed,arg){
       analogWrite(pin, brightness);
       nilThdSleepMilliseconds(DelayTime);
     }
-    
+    digitalWrite(13, LOW); 
     // fad out...
     while(brightness > minBright ){
       brightness = brightness - fadeAmount;
@@ -295,7 +176,6 @@ NIL_THREAD(BlinkingRed,arg){
   determined by its position in the table with highest priority first.
 */
 NIL_THREADS_TABLE_BEGIN()
-NIL_THREADS_TABLE_ENTRY(NULL /*TH NAME*/, Music,          NULL, waMusic,          sizeof(waMusic))
 NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingLights, NULL, waBlinkingLights, sizeof(waBlinkingLights))
 NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingRed, NULL, waBlinkingRed, sizeof(waBlinkingRed))
 NIL_THREADS_TABLE_END()
