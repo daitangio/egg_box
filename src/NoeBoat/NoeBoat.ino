@@ -1,7 +1,16 @@
 
-/** EGG BOX WITH 4 Independent PWM light and one powerful speaker.
-  * Red Led rocks a lot
+/**  The ultra tight Noe Boat
+  *  You NEED an  arduino IDE 1.5.x to be happy
+  * and a special file to enable C++ extra features:
+  * echo 'compiler.cpp.extra_flags=-DEXTRA_CPP_FEATURE -std=c++11 -std=gnu++11  ' >$ARDUINO_HOME/hardware/arduino/avr/platform.local.txt
+  * Board: arduino uno
   */
+
+#ifndef EXTRA_CPP_FEATURE
+#error "You need to create your custom $ARDUINO_HOME/hardware/arduino/avr/platform.local.txt in your ARDUINO 1.5.x IDE"
+#endif
+auto x=1;
+
 #include <pitches_it.h>
 #include <NilRTOS.h>
 

@@ -11,9 +11,16 @@
   to override standard arduino compiler flags and enable C++11 experimental features
   You need also to realunch your arduino ide to force reading the new options
   
+  On MAcosx try
+  export ARDUINO_HOME=/Applications/Arduino.app//Contents/Resources/Java/
   
   About C++11
    http://en.wikipedia.org/wiki/C%2B%2B11
+* Consider
+https://github.com/vancegroup/stlport-avr/wiki
+And ALSO
+https://github.com/rpavlik/Arduino-Makefile
+
 */
 
 #ifndef EXTRA_CPP_FEATURE
@@ -25,6 +32,44 @@ const auto x=1;
 
 // And you get for sure lambda functions...
 const auto lambdaGuy = [](int i){ return i; };
+
+
+//GG COMPLEX LAMBDA 
+/*
+#include<iostream>
+#include <functional>
+#include <vector>
+
+
+std::string to_string(const char* s)
+{
+    return s;
+}
+
+class Test
+{
+    private:
+        void print() {}
+
+    public:
+        template<typename T, typename... Args>
+        void print(T value, Args... args)
+        {
+            std::cout << value << "\n";
+            print(args...);
+        }
+
+        template<typename... Args>
+        std::function<void()> getFunc(Args... args)
+        {
+            using namespace std;
+            std::vector<std::string> ArgumentList;
+            std::initializer_list<int> {(ArgumentList.push_back(to_string(args)), 0)...};
+            return [=] {for (const auto &t : ArgumentList){print(t);}};
+        }
+};
+
+*/
 
 void setup() {
   // 'Range-based for' syntax: no more boring for! Wellcome in 2000!
