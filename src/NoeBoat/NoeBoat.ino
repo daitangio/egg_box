@@ -4,12 +4,14 @@
   * and a special file to enable C++ extra features:
   * echo 'compiler.cpp.extra_flags=-DEXTRA_CPP_FEATURE -std=c++11 -std=gnu++11  ' >$ARDUINO_HOME/hardware/arduino/avr/platform.local.txt
   * Board: arduino uno
+  * This is the firt example using lambda function and heavy auto keyword to use them. Type safety and no anoyny type with you.
+  * 
   */
 
 #ifndef EXTRA_CPP_FEATURE
 #error "You need to create your custom $ARDUINO_HOME/hardware/arduino/avr/platform.local.txt in your ARDUINO 1.5.x IDE"
 #endif
-auto x=1;
+
 
 #include <pitches_it.h>
 #include <NilRTOS.h>
@@ -25,6 +27,68 @@ int blueLed=5;  //ledgroup 3
 int redLed=10;  // PWM 3 get conflict with sound
 const int DelayTime=44; // 44 is good
 
+/// See http://en.cppreference.com/w/cpp/language/lambda
+/// For complete syntax explanation
+#define DEBUG
+#ifdef DEBUG 
+auto say=[](String p1){ Serial.print(p1); };
+#else
+auto say=[](String p1)->void{  };
+#endif
+
+
+
+/// FUNCTIONAL MUBO JUMBO please see ./bits/stl_function.h
+
+template<typename _Arg, typename _Result>
+    struct unary_function
+    {
+      /// @c argument_type is the type of the argument
+      typedef _Arg 	argument_type;   
+
+      /// @c result_type is the return type
+      typedef _Result 	result_type;  
+    };
+
+template<typename _Arg1, typename _Arg2, typename _Result>
+    struct binary_function
+    {
+      /// @c first_argument_type is the type of the first argument
+      typedef _Arg1 	first_argument_type; 
+
+      /// @c second_argument_type is the type of the second argument
+      typedef _Arg2 	second_argument_type;
+
+      /// @c result_type is the return type
+      typedef _Result 	result_type;
+    };
+    
+template<typename _Tp>
+    struct plus : public binary_function<_Tp, _Tp, _Tp>
+    {
+      _Tp
+      inline operator()(const _Tp& __x, const _Tp& __y) const
+      { return __x + __y; }
+    };
+
+
+
+  template<typename _Predicate>
+    class unary_negate
+    : public unary_function<typename _Predicate::argument_type, bool>
+    {
+    protected:
+      _Predicate _M_pred;
+
+    public:
+      explicit
+      unary_negate(const _Predicate& __x) : _M_pred(__x) { }
+
+      bool
+      operator()(const typename _Predicate::argument_type& __x) const
+      { return !_M_pred(__x); }
+    };
+
 
 
 
@@ -38,8 +102,30 @@ void setup(){
  pinMode(redLed,OUTPUT);
 
  Serial.begin(9600);
- Serial.println(F("The 4EggBox v2.3+ RTOS"));
+ Serial.println(F("LedCheck"));
  Serial.println();
+ 
+ int pin2test[]= { yellowLed, greenLed, redLed };
+ digitalWrite(13, HIGH); 
+ for(int& pin: pin2test){
+   analogWrite(pin,255);
+   say(".");
+   delay(500);
+ }
+ /*
+ plus<int> bho;
+ digitalWrite(bho(11,2), LOW); 
+ */
+ 
+ 
+ //[capture](parameters)->return-type{body}
+ auto inc= [](int x) -> int {return x+1;};
+ digitalWrite(inc(12),LOW);
+ say("#");
+ Serial.println(F("The NoeBox v0.1+ RTOS"));
+ 
+ 
+ 
  nilSysBegin();
 }
 
@@ -49,6 +135,7 @@ unsigned long lastToggyellowLedBlinker;
 
 
 void fadeOut(int pin, int fadeAmount){
+ 
   int brightness = 255;    // how bright the LED is  
   while(brightness >0 ){
     brightness = brightness + fadeAmount;
@@ -149,12 +236,44 @@ NIL_THREAD(BlinkingLights,arg){
   }
 }
 
+//////
+inline auto makeFadeInFunctionOnPin(int pin, int fadeAmount){
+  return [=]() {
+    int brightness = 0;    // how bright the LED is
+    while(brightness <255 ){
+      brightness = brightness + fadeAmount;
+      analogWrite(pin, brightness);
+      nilThdSleepMilliseconds(DelayTime);
+    }
+  };
+}
+
+inline auto makeFadeOutFunctionOnPin(int pin, int fadeAmount){
+  return [=](){
+   
+    int brightness = 255;    // how bright the LED is  
+    while(brightness >0 ){
+      brightness = brightness - fadeAmount;
+      if(brightness<0) { brightness=0;};
+      analogWrite(pin, brightness);
+      nilThdSleepMilliseconds(DelayTime);
+    }
+  };
+}
+
+
 // Very tiny stack for this red alerter: we economize on the rest
 NIL_WORKING_AREA(waBlinkingRed, 8);
 NIL_THREAD(BlinkingRed,arg){
   const int minBright=25;
   const int maxBright=255;
+  auto fadeInF=makeFadeInFunctionOnPin(redLed,5);
+  auto fadeOutF=makeFadeOutFunctionOnPin(redLed, 7);
   while(true){
+    fadeInF();
+    fadeOutF();
+    
+    /*
     digitalWrite(13, HIGH); 
     int pin=redLed;
     int brightness = minBright;    // how bright the LED is
@@ -174,6 +293,7 @@ NIL_THREAD(BlinkingRed,arg){
       analogWrite(pin, brightness);
       nilThdSleepMilliseconds(DelayTime);
     }
+    */
     
     
   }
