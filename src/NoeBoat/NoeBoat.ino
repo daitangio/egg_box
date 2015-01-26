@@ -8,6 +8,7 @@
   * This is the first example using lambda function and heavy auto keyword to use them. 
   * 
   * 
+  * 
   */
 
 #ifndef EXTRA_CPP_FEATURE
@@ -183,8 +184,10 @@ NIL_THREAD(BlinkingLights,arg){
   }
 }
 
-/// A seto of function which builds function for us
-/// Things are always catured by value for  joy.
+
+/** Create a fade in function based on pin and fadeAmount specified
+ * @return a function you can invoke to execute a full fade in
+ */
 inline auto makeFadeInFunctionOnPin(int pin, int fadeAmount){
   return [=]() {
     int brightness = 0;    // how bright the LED is
@@ -211,9 +214,11 @@ inline auto makeFadeOutFunctionOnPin(int pin, int fadeAmount){
 
 
 // Very tiny stack for this red alerter: we economize on the rest
+
 NIL_WORKING_AREA(waBlinkingRed, 8);
+/* @todo  Change the fade lighting game using a sensor!
+ */
 NIL_THREAD(BlinkingRed,arg){
-  
   
   auto fadeInF=makeFadeInFunctionOnPin(redLed,5);
   auto fadeOutF=makeFadeOutFunctionOnPin(redLed, 7);
@@ -227,6 +232,7 @@ NIL_THREAD(BlinkingRed,arg){
 /** Thread static table 
   A thread's priority is
   determined by its position in the table with highest priority first.
+  
 */
 NIL_THREADS_TABLE_BEGIN()
 NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingLights, NULL, waBlinkingLights, sizeof(waBlinkingLights))

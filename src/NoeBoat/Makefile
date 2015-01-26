@@ -16,3 +16,6 @@ include ../../../Arduino-Makefile/Arduino.mk
 # For emacs fly-make
 check-syntax:
 	$(CXX) -c -include Arduino.h   -x c++ $(CXXFLAGS)   $(CPPFLAGS)  -fsyntax-only $(CHK_SOURCES)
+
+doxygen:
+	doxygen Doxyfile
