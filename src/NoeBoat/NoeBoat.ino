@@ -1,10 +1,12 @@
 
 /**  The ultra tight Noe Boat
   *  You NEED an  arduino IDE 1.5.x to be happy
-  * and a special file to enable C++ extra features:
+  * and use the Special Makefile included.
+  * For using with a bare naked arduino ide, try this
   * echo 'compiler.cpp.extra_flags=-DEXTRA_CPP_FEATURE -std=c++11 -std=gnu++11  ' >$ARDUINO_HOME/hardware/arduino/avr/platform.local.txt
   * Board: arduino uno
-  * This is the firt example using lambda function and heavy auto keyword to use them. Type safety and no anoyny type with you.
+  * This is the first example using lambda function and heavy auto keyword to use them. 
+  * 
   * 
   */
 
@@ -25,72 +27,23 @@ int yellowLed = 9;           // the pin that the LED is attached to
 int greenLed=6;      // Reverse pin
 int blueLed=5;  //ledgroup 3 
 int redLed=10;  // PWM 3 get conflict with sound
-const int DelayTime=44; // 44 is good
+const int DelayTime=44*3; // 44 is good
+
+
+
+
 
 /// See http://en.cppreference.com/w/cpp/language/lambda
 /// For complete syntax explanation
-#define DEBUG
+/// Please see also 
+/// http://en.cppreference.com/w/cpp/language/function#Return_type_deduction
+/// for type declaration inference and so on
+// #define DEBUG
 #ifdef DEBUG 
 auto say=[](String p1){ Serial.print(p1); };
 #else
 auto say=[](String p1)->void{  };
 #endif
-
-
-
-/// FUNCTIONAL MUBO JUMBO please see ./bits/stl_function.h
-
-template<typename _Arg, typename _Result>
-    struct unary_function
-    {
-      /// @c argument_type is the type of the argument
-      typedef _Arg 	argument_type;   
-
-      /// @c result_type is the return type
-      typedef _Result 	result_type;  
-    };
-
-template<typename _Arg1, typename _Arg2, typename _Result>
-    struct binary_function
-    {
-      /// @c first_argument_type is the type of the first argument
-      typedef _Arg1 	first_argument_type; 
-
-      /// @c second_argument_type is the type of the second argument
-      typedef _Arg2 	second_argument_type;
-
-      /// @c result_type is the return type
-      typedef _Result 	result_type;
-    };
-    
-template<typename _Tp>
-    struct plus : public binary_function<_Tp, _Tp, _Tp>
-    {
-      _Tp
-      inline operator()(const _Tp& __x, const _Tp& __y) const
-      { return __x + __y; }
-    };
-
-
-
-  template<typename _Predicate>
-    class unary_negate
-    : public unary_function<typename _Predicate::argument_type, bool>
-    {
-    protected:
-      _Predicate _M_pred;
-
-    public:
-      explicit
-      unary_negate(const _Predicate& __x) : _M_pred(__x) { }
-
-      bool
-      operator()(const typename _Predicate::argument_type& __x) const
-      { return !_M_pred(__x); }
-    };
-
-
-
 
 
 
@@ -112,17 +65,11 @@ void setup(){
    say(".");
    delay(500);
  }
- /*
- plus<int> bho;
- digitalWrite(bho(11,2), LOW); 
- */
+
  
- 
- //[capture](parameters)->return-type{body}
- auto inc= [](int x) -> int {return x+1;};
- digitalWrite(inc(12),LOW);
+ digitalWrite(13,LOW);
  say("#");
- Serial.println(F("The NoeBox v0.1+ RTOS"));
+ Serial.println(F("The NoeBox v0.2+ RTOS"));
  
  
  
@@ -236,7 +183,8 @@ NIL_THREAD(BlinkingLights,arg){
   }
 }
 
-//////
+/// A seto of function which builds function for us
+/// Things are always catured by value for  joy.
 inline auto makeFadeInFunctionOnPin(int pin, int fadeAmount){
   return [=]() {
     int brightness = 0;    // how bright the LED is
@@ -265,37 +213,13 @@ inline auto makeFadeOutFunctionOnPin(int pin, int fadeAmount){
 // Very tiny stack for this red alerter: we economize on the rest
 NIL_WORKING_AREA(waBlinkingRed, 8);
 NIL_THREAD(BlinkingRed,arg){
-  const int minBright=25;
-  const int maxBright=255;
+  
+  
   auto fadeInF=makeFadeInFunctionOnPin(redLed,5);
   auto fadeOutF=makeFadeOutFunctionOnPin(redLed, 7);
   while(true){
     fadeInF();
     fadeOutF();
-    
-    /*
-    digitalWrite(13, HIGH); 
-    int pin=redLed;
-    int brightness = minBright;    // how bright the LED is
-    int fadeAmount = 5;    // how many points to fade the LED by
-  
-    analogWrite(pin, brightness);
-    // fade in,,,,
-    while(brightness <maxBright ){
-      brightness = brightness + fadeAmount;
-      analogWrite(pin, brightness);
-      nilThdSleepMilliseconds(DelayTime);
-    }
-    digitalWrite(13, LOW); 
-    // fad out...
-    while(brightness > minBright ){
-      brightness = brightness - fadeAmount;
-      analogWrite(pin, brightness);
-      nilThdSleepMilliseconds(DelayTime);
-    }
-    */
-    
-    
   }
 }
 
@@ -309,4 +233,9 @@ NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingLights, NULL, waBlinkingLights
 NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingRed, NULL, waBlinkingRed, sizeof(waBlinkingRed))
 NIL_THREADS_TABLE_END()
 
-
+/*
+ * Local variables:
+ * mode: c++
+ * mode: flymake
+ * End:
+ */
