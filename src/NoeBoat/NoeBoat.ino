@@ -65,13 +65,13 @@ void setup(){
  for(int& pin: pin2test){
    analogWrite(pin,255);
    say(".");
-   delay(500);
+   delay(100);
  }
 
  
  
  say("#");
- Serial.println(F("The NoeBox v0.2+ RTOS"));
+ Serial.println(F("The NoeBox v0.3+ RTOS"));
  
  
  
@@ -232,6 +232,8 @@ NIL_THREAD(BlinkingRed,arg){
 
 NIL_WORKING_AREA(waLedSensor, 232);
 /* Very nice idea here http://www.instructables.com/id/LED-as-lightsensor-on-the-arduino/
+ * Also better implemented here
+ *  http://www.instructables.com/id/Arduino-Use-LED-as-a-light-sensor/
  */
 const int sensorOutput=13;
 NIL_THREAD(LedSensor,arg){
@@ -247,10 +249,11 @@ NIL_THREAD(LedSensor,arg){
 
   // We do 50 reads to calibreate the sensor (?)
   for(x =0; x < 50; x++) {
-      sens = analogRead(0);
-      totaal = totaal1 + sens; totaal1 = totaal;
+    sens = analogRead(0);
+    totaal = totaal1 + sens; totaal1 = totaal;
   }
-
+  /// Then give a small chance to guys to work with us
+  nilThdSleepMilliseconds(10);
   say(F("Calibrated"));
   while(true){
     sens = totaal/x;                          // divide the 50 readings by 50 again 
@@ -259,34 +262,38 @@ NIL_THREAD(LedSensor,arg){
     basis = sens-20;           // setting sensitivity - now it will react if the LED is 20 lower than the setting above
     Serial.print("Base:");
     Serial.println(basis);
+    
     for(y=0;y<1000;y++){       // after every 1000 tests the program will reset the led to cope with changing light
-        for(x =0; x < 50; x++) {      // 50 readings to see if the sensor is in the dark
-       sens = analogRead(0);
-       totaal = totaal1 + sens;
-       totaal1 = totaal;
-       delay(10); }
-       sens = totaal/x;
-       if (sens < basis)                // testing is the led was in the dark
-         digitalWrite(sensorOutput, HIGH);  // turning the led in port 13 or on the board on if the sensor-led was 20 darker than now than in the setting
-         else  
-           digitalWrite(sensorOutput, LOW); // turning it of if not
+      for(x =0; x < 50; x++) {      // 50 readings to see if the sensor is in the dark
+        sens = analogRead(0);
+        totaal = totaal1 + sens;
+        totaal1 = totaal;
+        delay(10);
+      }
+      sens = totaal/x;
+      if (sens < basis)                // testing is the led was in the dark
+        digitalWrite(sensorOutput, HIGH);  // turning the led in port 13 or on the board on if the sensor-led was 20 darker than now than in the setting
+      else  
+        digitalWrite(sensorOutput, LOW); // turning it of if not
 
-       // Now use the value on redLed
-       Serial.print("$");
-       Serial.println(sens);
-       // Se basis=182, sens varia tra 187 e 174
-       // Per cui dobbiamo mappare il dim tra una variazione di 187-174 = 13 valori da riproiettare su 255
-       int k=basis-sens;
-       int remapped=map(k,-7,6,0,255);
-       Serial.print(" K:"); Serial.print(k);
-       Serial.print(" R:");
-       Serial.println(remapped);
-       analogWrite( redLed, remapped);
-       totaal = 0;  
-       totaal1 = 0;  
-       nilThdSleepMilliseconds(100);
-    }  //for
-  }
+      // Now use the value on redLed
+      Serial.print("$");
+      Serial.print(sens);
+      // Se basis=182, sens varia tra 187 e 174
+      // Per cui dobbiamo mappare il dim tra una variazione di 187-174 = 13 valori da riproiettare su 255
+      // Purtroppo al momento no è parametrico, valutare come centrarlo
+      int remapped=255-map(sens,167,184,0,255);
+      if(remapped>255) remapped=255;
+      else if (remapped <0) remapped=0;
+      
+      Serial.print(" R:");
+      Serial.println(remapped);
+      analogWrite( redLed, remapped);
+      totaal = 0;  
+      totaal1 = 0;  
+      nilThdSleepMilliseconds(100);
+      }  //for reset
+  } // while(true)
 }
 
 

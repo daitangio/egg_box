@@ -9,7 +9,7 @@ BOARD_TAG    = uno
 # Separated by spaces
 ARDUINO_LIBS = ../libraries/egg_utils ../libraries/NilRTOS
 
-CPPFLAGS +=-DDEBUG -DEXTRA_CPP_FEATURE -std=c++11 -std=gnu++11 
+CPPFLAGS += -DEXTRA_CPP_FEATURE -std=c++11 -std=gnu++11 
 
 include ../../../Arduino-Makefile/Arduino.mk
 
