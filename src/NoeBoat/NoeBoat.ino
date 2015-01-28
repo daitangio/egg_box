@@ -5,8 +5,9 @@
   * For using with a bare naked arduino ide, try this
   * echo 'compiler.cpp.extra_flags=-DEXTRA_CPP_FEATURE -std=c++11 -std=gnu++11  ' >$ARDUINO_HOME/hardware/arduino/avr/platform.local.txt
   * Board: arduino uno
-  * This is the first example using lambda function and heavy auto keyword to use them. 
   * 
+  * Using a Led as 'poor man light sensor' the lamp after a small calibration will try to be brigther on dark and turn off on light.
+  * A bunch of extra effect are on the way.
   * 
   * 
   */
@@ -60,7 +61,7 @@ void setup(){
  Serial.println();
  
  int pin2test[]= { yellowLed, greenLed, redLed };
- digitalWrite(13, HIGH); 
+ 
  for(int& pin: pin2test){
    analogWrite(pin,255);
    say(".");
@@ -68,7 +69,7 @@ void setup(){
  }
 
  
- digitalWrite(13,LOW);
+ 
  say("#");
  Serial.println(F("The NoeBox v0.2+ RTOS"));
  
@@ -229,14 +230,77 @@ NIL_THREAD(BlinkingRed,arg){
 }
 
 
+NIL_WORKING_AREA(waLedSensor, 232);
+/* Very nice idea here http://www.instructables.com/id/LED-as-lightsensor-on-the-arduino/
+ */
+const int sensorOutput=13;
+NIL_THREAD(LedSensor,arg){
+
+  pinMode(sensorOutput, OUTPUT);
+  
+  int basis = 0;
+  int sens = 0;
+  int x = 0;
+  int y = 0;
+  int totaal = 0;
+  int totaal1 = 0;
+
+  // We do 50 reads to calibreate the sensor (?)
+  for(x =0; x < 50; x++) {
+      sens = analogRead(0);
+      totaal = totaal1 + sens; totaal1 = totaal;
+  }
+
+  say(F("Calibrated"));
+  while(true){
+    sens = totaal/x;                          // divide the 50 readings by 50 again 
+    totaal = 0;
+    totaal1 = 0;
+    basis = sens-20;           // setting sensitivity - now it will react if the LED is 20 lower than the setting above
+    Serial.print("Base:");
+    Serial.println(basis);
+    for(y=0;y<1000;y++){       // after every 1000 tests the program will reset the led to cope with changing light
+        for(x =0; x < 50; x++) {      // 50 readings to see if the sensor is in the dark
+       sens = analogRead(0);
+       totaal = totaal1 + sens;
+       totaal1 = totaal;
+       delay(10); }
+       sens = totaal/x;
+       if (sens < basis)                // testing is the led was in the dark
+         digitalWrite(sensorOutput, HIGH);  // turning the led in port 13 or on the board on if the sensor-led was 20 darker than now than in the setting
+         else  
+           digitalWrite(sensorOutput, LOW); // turning it of if not
+
+       // Now use the value on redLed
+       Serial.print("$");
+       Serial.println(sens);
+       // Se basis=182, sens varia tra 187 e 174
+       // Per cui dobbiamo mappare il dim tra una variazione di 187-174 = 13 valori da riproiettare su 255
+       int k=basis-sens;
+       int remapped=map(k,-7,6,0,255);
+       Serial.print(" K:"); Serial.print(k);
+       Serial.print(" R:");
+       Serial.println(remapped);
+       analogWrite( redLed, remapped);
+       totaal = 0;  
+       totaal1 = 0;  
+       nilThdSleepMilliseconds(100);
+    }  //for
+  }
+}
+
+
+
+
 /** Thread static table 
   A thread's priority is
   determined by its position in the table with highest priority first.
   
 */
 NIL_THREADS_TABLE_BEGIN()
-NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingLights, NULL, waBlinkingLights, sizeof(waBlinkingLights))
-NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingRed, NULL, waBlinkingRed, sizeof(waBlinkingRed))
+NIL_THREADS_TABLE_ENTRY(NULL            , LedSensor, NULL, waLedSensor, sizeof(waLedSensor))
+//NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingLights, NULL, waBlinkingLights, sizeof(waBlinkingLights))
+//NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingRed, NULL, waBlinkingRed, sizeof(waBlinkingRed))
 NIL_THREADS_TABLE_END()
 
 /*
