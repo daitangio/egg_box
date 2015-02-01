@@ -4,8 +4,8 @@
   */
 #include <pitches_it.h>
 #include <NilRTOS.h>
-
-#define DEBUG yeppa
+#include <jj-log.h>
+// #define DEBUG yeppa
 
 const int speakerOut=A5;
 
@@ -16,7 +16,7 @@ int blueLed=5;  //ledgroup 3
 int redLed=10;  //PWM 3 get conflict with sound
 const int DelayTime=44; // 44 is good
 
-const float  durationBase=900;
+const float  durationBase=800;
 const float D1_3= 0.33;
 
 const float HALF= 0.5;
@@ -24,7 +24,9 @@ const float Q   = 0.25;
 
 // Two pair: note and duration
 // This stuff go in ram so it is a pity but we cannot fix it without continuous swapping
-const float music[]  ={ 
+
+/* Scala */
+const float scalaMusicale[]  ={ 
   NOTE_DO4,1,
   NOTE_RE4,1,
   NOTE_MI4,1,
@@ -32,13 +34,12 @@ const float music[]  ={
   NOTE_SOL4,1,
   NOTE_LA4,1,
   NOTE_SI4,1,
-  NOTE_DO4,1,
-  NOTE_SI4,1,
-  NOTE_LA4,1  
+  NOTE_DO5,1,
+  -1,-1,-1,-1 /** CLOSE MUSIC */
 };
-/* EVA
-const float music[]  ={ 
-                      
+
+/* EVA */
+const float eva[]  ={              
                       NOTE_DO4,1, 
                       NOTE_RES4,1,  //MIS
                       NOTE_FA4,1,
@@ -83,17 +84,65 @@ const float music[]  ={
                       
                      
                   };
-*/
+
+
+const float beverlyhillsCop[] /*PROGMEM*/ ={ NOTE_FA4,1, 
+                      NOTE_LAS4 /*BEMOLLE*/ ,1, 
+                      
+                      NOTE_FA4,  D1_3,
+                      NOTE_FA4,  D1_3,
+                      NOTE_LAS4, D1_3, /*SI BEM*/
+                      
+                      NOTE_FA4,  1/2.0,
+                      NOTE_RES4, 1/2.0, /* MI BEM*/
+                      
+                      // Second 
+                      NOTE_FA4,1,
+                      NOTE_DO5,1,
+                      
+                      NOTE_FA4,D1_3,
+                      NOTE_FA4,D1_3,
+                      NOTE_DOS5,D1_3,
+                      
+                      NOTE_DOS5,HALF, // INEXACT....
+                      NOTE_LAS4,HALF, // LAB
+                       
+                      
+                      
+                      //THIRD
+                      NOTE_FA4,Q,
+                      NOTE_DO5,Q,
+                      NOTE_FA5,Q,
+                      NOTE_FA4,Q,
+                      
+                      NOTE_RES4,D1_3,     //MI bem                     
+                      NOTE_MI4,D1_3,
+                      NOTE_DO4,D1_3,
+                      
+                      
+                      NOTE_SOL4,HALF,
+                      NOTE_FA4,HALF,
+                      NOTE_FA4,2,
+                      //+ PAUSA                      
+                      -1,-1,-1,-1
+                      
+                     
+                  };
+
+
+
 const float noteSwifter=1 ; // Default 1
+const int noteMin=NOTE_DO4;
+const int noteMax=NOTE_DO5;
+
 // Boot Music
-void taDa(){
- 
+void playMusic(const float music[]){
+
+  
   #ifdef DEBUG
-    Serial.println("MUSIC STARTS. Total Data:");
+    l("MUSIC STARTS. Total Data:");
   #endif
-  // See http://wiki.evageeks.org/A_Cruel_Angel%27s_Thesis
-  Serial.println(F("Like a cruel angel,"));
-  Serial.println(F("young boy, become the legend!"));
+
   //int noteCounter=1;
   float contaStrofa=1;
   for (int i=0; music[i] != -1;) {
@@ -101,16 +150,37 @@ void taDa(){
     int note=(int)( ((float)music[i])  *noteSwifter);
     float mdur=music[i+1];
     int duration=((int) (mdur*durationBase))+1;
+    // Turn on light based on freq
+    // I have 4 leds
+    int howmuch=map(note,noteMin,noteMax,0,3);
+    
     #ifdef DEBUG
     Serial.print(contaStrofa); Serial.print(F(" - Note:"));
     Serial.print(note); Serial.print(F(" Dur:"));
-    Serial.println(duration);    
+    Serial.print(duration);
+    Serial.print(F(" Leds:"));Serial.println(howmuch); 
     #endif
     if(note!=0) {
       tone(speakerOut,note);
     }else {
       noTone(speakerOut);
     }
+    
+
+    /*    if(howmuch >=1) {
+      analogWrite(redLed,note % 255);
+      }*/
+    if(howmuch <=1) {
+      analogWrite(greenLed, note % 255);
+    }
+    if(howmuch>=2){
+      analogWrite(yellowLed, note % 255);
+    }
+
+    if(howmuch>=3){
+      analogWrite(blueLed , note % 255);
+    }
+    
     
     nilThdSleepMilliseconds(duration);
     contaStrofa+=mdur;
@@ -119,6 +189,11 @@ void taDa(){
     }
     noTone(speakerOut);
     i+=2;
+
+    analogWrite(redLed,0);
+    analogWrite(greenLed,0);
+    analogWrite(blueLed,0);
+    analogWrite(yellowLed,0);
     
   }
   noTone(speakerOut);
@@ -139,7 +214,11 @@ void setup(){
  pinMode(redLed,OUTPUT);
 
  Serial.begin(9600);
- Serial.println(F("The 4EggBox v2.3+ RTOS"));
+ l("The 4EggBox v2.4 RTOS. Follow the MUSIC");
+ // See http://wiki.evageeks.org/A_Cruel_Angel%27s_Thesis
+ // Use jj-log.h
+ l("Like a cruel angel,");
+ l("young boy, become the legend!");
  Serial.println();
  nilSysBegin();
 }
@@ -223,11 +302,16 @@ void loop()
 NIL_WORKING_AREA(waMusic, 128);
 
 NIL_THREAD(Music, arg) {
-  taDa();  
+  playMusic(scalaMusicale);
+  nilThdSleepMilliseconds(1000);  
   while(true){
     
+    playMusic(beverlyhillsCop);
+    nilThdSleepMilliseconds(5000);  
+    playMusic(eva);
+    
     // Sleep for 10 sec
-    nilThdSleepMilliseconds(60000);  
+    nilThdSleepMilliseconds(10000);  
   }
 }
 
@@ -296,8 +380,12 @@ NIL_THREAD(BlinkingRed,arg){
 */
 NIL_THREADS_TABLE_BEGIN()
 NIL_THREADS_TABLE_ENTRY(NULL /*TH NAME*/, Music,          NULL, waMusic,          sizeof(waMusic))
-NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingLights, NULL, waBlinkingLights, sizeof(waBlinkingLights))
+//NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingLights, NULL, waBlinkingLights, sizeof(waBlinkingLights))
 NIL_THREADS_TABLE_ENTRY(NULL            , BlinkingRed, NULL, waBlinkingRed, sizeof(waBlinkingRed))
 NIL_THREADS_TABLE_END()
 
 
+// Local variables:
+// mode:c++
+// mode:company
+// End:
