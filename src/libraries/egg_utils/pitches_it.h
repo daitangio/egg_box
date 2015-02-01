@@ -1,6 +1,9 @@
 /*************************************************
  * Public Constants
  * GG Translation
+ * See 
+ http://phy.mtu.edu/~suits/notefreqs.html
+
   Do = C
   Re = D  DA FARE PER PRIMO
   Mi = E
@@ -8,6 +11,7 @@
   Sol = G
   La = A
   Si = B
+// DO4/C4 is the center
  *************************************************/
 
 
@@ -48,7 +52,10 @@
 #define NOTE_LA3  220
 #define NOTE_LAS3 233
 #define NOTE_SI3  247
+
+// C4
 #define NOTE_DO4  262
+
 #define NOTE_DOS4 277
 #define NOTE_RE4  294
 #define NOTE_RES4 311
@@ -57,10 +64,11 @@
 #define NOTE_FAS4 370
 #define NOTE_SOL4  392
 #define NOTE_SOLS4 415
-#define NOTE_LA4  440
+#define NOTE_LA4  440 /* ?*/
 #define NOTE_LAS4 466
 #define NOTE_SI4  494
 #define NOTE_DO5  523
+
 #define NOTE_DOS5 554
 #define NOTE_RE5  587
 #define NOTE_RES5 622
