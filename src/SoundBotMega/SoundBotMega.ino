@@ -1,24 +1,19 @@
+
 #include <Servo.h>
 #include <Ping.h>
 
 #include "pitches_it.h"
-
 #include <NilRTOS.h>
+#include <jj-log.h>
 
-#define DEBUG yeppa
 /*
  * Derivato dalla serie di esperimenti fatti intorno al 2011,
- * SoundBot srfutta la potenza di un ArduinoMega 2560
+ * SoundBot sfeutta la potenza di un ArduinoMega 2560
  * Per sviluppare un piccolo robot dotato di due motori servo e di un 
  * sensore sonico di tipo Ping))) 
  */
 
 
-// Robo Sound 5 Si ferma se davanti c'è un ostacolo troppo vicino
-// non fa altro
-// Ha la correzione angolare
-// E' più veloce 
-// **SEMBRA**  che la libreria Aiko dia problemi al controllo motori
 
 
 
@@ -28,7 +23,7 @@ const int rightEnginePin=6;
 const int pingPin=5; // Arancione
 const int distanceFeedbackLed = 13;  // PWM
 const int speakerOut=A5;
-const boolean DEBUG_MODE=true;
+//const boolean DEBUG_MODE=true;
 
 
 // Costanti da tarare
@@ -48,6 +43,23 @@ Servo rightEngineServo;
 Ping ping = Ping(pingPin,0,0);
 
 
+boolean isDangerDirection();
+
+// Boot Music
+void taDa(){
+  crServo.write(Front_Angle-45);
+  tone(speakerOut,NOTE_SI4);
+  delay(100);
+  tone(speakerOut,NOTE_LA3);
+  delay(100);
+  tone(speakerOut,NOTE_DO2);
+  delay(100);
+  noTone(speakerOut);
+  crServo.write(Front_Angle+45);
+
+}
+
+
 
 void setup(){
  Serial.begin(9600);
@@ -58,15 +70,17 @@ void setup(){
  pinMode(distanceFeedbackLed, OUTPUT);
  pinMode(speakerOut, OUTPUT);
  taDa();
- Serial.print("C:");
- Serial.println(DangerDistance);
+ describe("Ready");
+   //Serial.print("C:");
+   //Serial.println(DangerDistance);
  nilSysBegin();
 }
 
 void loop() 
 {
     // Used only on DEBUG:
-    #ifdef DEBUG
+  /*
+#ifdef DEBUG
       nilPrintStackSizes(&Serial);
       nilPrintUnusedStack(&Serial);
       Serial.println();
@@ -74,8 +88,10 @@ void loop()
       // Delay for one second.
       // Must not sleep in loop so use nilThdDelayMilliseconds().
       // Arduino delay() can also be used in loop().
-      nilThdDelayMilliseconds(1000);
+      
     #endif
+  */
+nilThdDelayMilliseconds(1000);
 }
 
 
@@ -131,42 +147,43 @@ NIL_THREAD(PingHead, arg) {
   } // while main loop
 }
 
-/*
-NIL_WORKING_AREA(waEngine, 128);
+void stop(){
+  leftEngineServo.write(90); // STOP
+  rightEngineServo.write(90);
+  Serial.println("STOP!");
+}
+
+void go(int m) {
+  Serial.println("GO!");
+  leftEngineServo.write(110);
+  rightEngineServo.write(180-110);
+  delay(m);
+}
+
+NIL_WORKING_AREA(waEngine, 1024);
 NIL_THREAD(Engine, arg) {
-  // Basic code to stay quite while the head work out the best direction
+  describe("Engine ready");
   while(true) {
-   leftEngineServo.write(90); // STOP
-   rightEngineServo.write(90);
-   nilThdSleepMilliseconds(1000);
+    stop();
+    // Go forward for 0,2 sec
+    go(2000);
+    stop();
+    nilThdSleepMilliseconds(2000);
   }
 }
-*/
+
   
 NIL_THREADS_TABLE_BEGIN()
-NIL_THREADS_TABLE_ENTRY(NULL            , PingHead, NULL, waPingHead, sizeof(waPingHead))
-//NIL_THREADS_TABLE_ENTRY(NULL            , Engine, NULL, waEngine, sizeof(waEngine))
+//NIL_THREADS_TABLE_ENTRY(NULL            , PingHead, NULL, waPingHead, sizeof(waPingHead))
+NIL_THREADS_TABLE_ENTRY(NULL            , Engine, NULL, waEngine, sizeof(waEngine))
 NIL_THREADS_TABLE_END()
 
 
-// Boot Music
-void taDa(){
-  crServo.write(Front_Angle-45);
-  tone(speakerOut,NOTE_SI4);
-  delay(100);
-  tone(speakerOut,NOTE_LA3);
-  delay(100);
-  tone(speakerOut,NOTE_DO2);
-  delay(100);
-  noTone(speakerOut);
-  crServo.write(Front_Angle+45);
-
-}
 
 
 void old_loop()
 {
-  int temp;
+  //int temp;
   
   
   // GOOO
@@ -198,6 +215,7 @@ void old_loop()
   
 }
 
+double fire();
 
 boolean isDangerDirection(){
   double cm=fire();
@@ -235,7 +253,7 @@ double fire(){
       double cm=ping.centimeters();
       ledFeedback(cm);
       //toneFeedback(cm);
-      if(DEBUG_MODE){
+      //if(DEBUG_MODE){
         Serial.print("H ");
         Serial.print(crServo.read());
         Serial.print(")");
@@ -246,7 +264,12 @@ double fire(){
             Serial.print(" E ");                 
         }
         Serial.println("");
-      }
+        //}
       return cm;
 }
 
+// Local variables:
+// mode:c++
+// mode:flymake
+// mode:company
+// End:
