@@ -11,8 +11,9 @@ BOARD_SUB=atmega2560
 # Separated by spaces
 ARDUINO_LIBS = ../libraries/egg_utils ../libraries/NilRTOS ../libraries/Servo/ ../libraries/Ping
 
+# -DDEBUG
+CPPFLAGS += -DDEBUG_LOG  -DEXTRA_CPP_FEATURE -std=c++11 -std=gnu++11 
 
-CPPFLAGS += -DDEBUG -DDEBUG_LOG   -felide-constructors  -std=c++0x
 
 include ../../../Arduino-Makefile/Arduino.mk
 

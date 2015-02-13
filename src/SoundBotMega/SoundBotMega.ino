@@ -2,15 +2,20 @@
 #include <Servo.h>
 #include <Ping.h>
 
-#include "pitches_it.h"
-#include <NilRTOS.h>
+/// Included in JJ's EggBox Util
+
+#include <pitches_it.h>
 #include <jj-log.h>
 
 /*
  * Derivato dalla serie di esperimenti fatti intorno al 2011,
- * SoundBot sfeutta la potenza di un ArduinoMega 2560
+ * SoundBot sfrutta la potenza di un ArduinoMega 2560
  * Per sviluppare un piccolo robot dotato di due motori servo e di un 
  * sensore sonico di tipo Ping))) 
+
+ * NilRTOS: Rlevata qualche MODESTA anomalia sul Serial output
+ * non presente su ArduinoUNO. 
+ * Per tale ragione al momento è stato DISATTIVATO
  */
 
 
@@ -63,36 +68,22 @@ void taDa(){
 
 void setup(){
  Serial.begin(9600);
+ l("EVA Type 01 Booting...");
  crServo.attach(pingServoEnginePin);
  leftEngineServo.attach(leftEnginePin);
  rightEngineServo.attach(rightEnginePin);
  
  pinMode(distanceFeedbackLed, OUTPUT);
+ l("Entry Plug OK");
  pinMode(speakerOut, OUTPUT);
+ l("Sound system boot...");
  taDa();
- describe("Ready");
+ 
    //Serial.print("C:");
    //Serial.println(DangerDistance);
- nilSysBegin();
+ //nilSysBegin();
 }
 
-void loop() 
-{
-    // Used only on DEBUG:
-  /*
-#ifdef DEBUG
-      nilPrintStackSizes(&Serial);
-      nilPrintUnusedStack(&Serial);
-      Serial.println();
-    
-      // Delay for one second.
-      // Must not sleep in loop so use nilThdDelayMilliseconds().
-      // Arduino delay() can also be used in loop().
-      
-    #endif
-  */
-nilThdDelayMilliseconds(1000);
-}
 
 
 
@@ -100,13 +91,14 @@ nilThdDelayMilliseconds(1000);
 
 boolean look(int angle){
    crServo.write(angle);
-  nilThdSleepMilliseconds( ServoWaitMS );
+   //nilThdSleepMilliseconds( ServoWaitMS );
   return isDangerDirection();
 }
 
 // NILRTOS Threads.
 // Master thread for Ping, other for engines (disabled right now)
 
+/*
 NIL_WORKING_AREA(waPingHead, 128);
 NIL_THREAD(PingHead, arg) {
   
@@ -146,6 +138,7 @@ NIL_THREAD(PingHead, arg) {
     nilThdSleepMilliseconds( ServoWaitMS*2 );
   } // while main loop
 }
+*/
 
 void stop(){
   leftEngineServo.write(90); // STOP
@@ -160,16 +153,22 @@ void go(int m) {
   delay(m);
 }
 
+void makeEngineTest1 (){
+  l("Engine ready");
+  
+  stop();
+  // Go forward for 0,2 sec
+  go(2000);
+  stop();
+  
+
+}
+
+/*
 NIL_WORKING_AREA(waEngine, 1024);
 NIL_THREAD(Engine, arg) {
-  describe("Engine ready");
-  while(true) {
-    stop();
-    // Go forward for 0,2 sec
-    go(2000);
-    stop();
-    nilThdSleepMilliseconds(2000);
-  }
+  makeEngineTest1();
+  nilThdSleepMilliseconds(2000);
 }
 
   
@@ -177,7 +176,7 @@ NIL_THREADS_TABLE_BEGIN()
 //NIL_THREADS_TABLE_ENTRY(NULL            , PingHead, NULL, waPingHead, sizeof(waPingHead))
 NIL_THREADS_TABLE_ENTRY(NULL            , Engine, NULL, waEngine, sizeof(waEngine))
 NIL_THREADS_TABLE_END()
-
+*/
 
 
 
@@ -267,6 +266,26 @@ double fire(){
         //}
       return cm;
 }
+
+void loop() 
+{
+  makeEngineTest1();
+    // Used only on DEBUG:
+  /*
+#ifdef DEBUG
+      nilPrintStackSizes(&Serial);
+      nilPrintUnusedStack(&Serial);
+      Serial.println();
+    
+      // Delay for one second.
+      // Must not sleep in loop so use nilThdDelayMilliseconds().
+      // Arduino delay() can also be used in loop().
+      
+    #endif
+  */
+  //nilThdDelayMilliseconds(1000);
+}
+
 
 // Local variables:
 // mode:c++
