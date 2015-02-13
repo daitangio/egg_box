@@ -25,7 +25,7 @@ inline void jj_do_debug_log(String f,int line, String msg){
 	Serial.print( F(" [L] ") );
         Serial.print(f); Serial.print(F(":"));
 	Serial.print(line);
-	Serial.print( F(" ") );
+	Serial.print( F("\t") );
 	Serial.println(msg);		
 }
 
