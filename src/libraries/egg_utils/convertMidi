@@ -1,0 +1,8 @@
+#!/bin/bash
+echo File $1 Track $2
+PATH=$PATH:/Users/jj/code/midi/midicsv-1.1
+midicsv  $1  |
+    egrep ^$2 |
+    egrep Note_on_c |
+    cut -d , -f 5,2 |
+    sed -e 's/$/,/'
