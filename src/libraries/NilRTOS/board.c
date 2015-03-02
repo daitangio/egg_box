@@ -32,7 +32,39 @@
  * @{
  */
 #include "nil.h"
-/** System time ISR. */
+/** System time ISR. 
+GG Very complex macro dance
+NIL_IRQ_HANDLER -> PORT_IRQ_HANDLER ->ISR
+So declaration is like
+ISR(PORT_IRQ_HANDLER)
+
+Arduino wiring.c 
+define a ISR(TIMER0_OVF_vect) (usage:???)
+Also Tone.cpp could be configured to use Timer0 but it does not use it
+/Applications/Arduino.app//Contents/Resources/Java/hardware/arduino/avr/cores/arduino/Tone.cpp:495
+
+
+From http://arduino-info.wikispaces.com/Timers-Arduino
+
+
+In the Arduino world timer0 is been used for the software Sketch timer functions, like 
+__delay()__, __millis()__ and __micros()__. 
+If you change timer0 registers, this may influence the Arduino timer function. 
+So you should know what you are doing.
+
+Pins
+Arduino Uno
+>>> Pins 5 and 6: controlled by timer0 <<<
+ PWN on this PINS FAILS (?)
+
+Arduino Mega
+Pins 4 and 13: controlled by timer0
+
+And about music:
+tone() function uses at least timer2. Y
+ou can’t use PWM on Pin 3,11 when you use the tone() function an Arduino and Pin 9,10 on Arduino Mega.
+
+*/
 NIL_IRQ_HANDLER(TIMER0_COMPA_vect) {
 
   NIL_IRQ_PROLOGUE();
