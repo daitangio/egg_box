@@ -2,10 +2,10 @@
 const int triggerPort = 7;
 const int echoPort = 8;
 const int blueLed=11;
-const int maxDistCm=30; // was 28
+const int maxDistCm=28; // was 28
 #include <NilRTOS.h>
 #include <jj-log.h>
-#include <Narcoleptic.h>
+
 void setup() {
    
   pinMode( triggerPort, OUTPUT );
@@ -58,20 +58,10 @@ NIL_THREAD(UltrasonicSensor,arg){
           Serial.print(F(" LED "));
           analogWrite(blueLed, v);
           
-        }else if (r>maxDistCm ){
-          analogWrite(blueLed,255);
-          Serial.print("MAX");
         }
       
       }
       lastValue=r;
-      /** WRONG USE
-      if(r <=5){
-        Serial.println(F("Sleep mode"));
-        Narcoleptic.delay(500);
-        Serial.println(F("Here again"));
-        }
-      */
     }
   
     /* From sensor data sheet:
