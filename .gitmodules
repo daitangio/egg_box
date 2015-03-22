@@ -1,0 +1,3 @@
+[submodule "src/libraries/SID"]
+	path = src/libraries/SID
+	url = https://github.com/daitangio/sid-arduino-lib

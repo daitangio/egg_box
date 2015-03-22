@@ -7,7 +7,7 @@
 # We also need extra flags -DEXTRA_CPP_FEATURE -std=c++11 -std=gnu++11 
 BOARD_TAG    = uno
 # Separated by spaces
-ARDUINO_LIBS = ../libraries/egg_utils ../libraries/NilRTOS
+ARDUINO_LIBS = ../libraries/egg_utils ../libraries/NilRTOS ../libraries/SID
 
 # add -DDEBUG -DDEBUG_LOG  for extra info
 CPPFLAGS += -DDEBUG_LOG -DEXTRA_CPP_FEATURE  -felide-constructors  -std=c++0x

@@ -1,24 +1,52 @@
 
-/** The midi player tester
- * SD Content
- MIDI/
-        EMPIRE.MID              22022
-        MISSIMPO.MID            11293
-        UNDERSEA.MID            57286
- 
+/** The midi player tester via SID emulator
+ * A0 -> Analog input for a pool of button attached with a resistence
+ * 
+ * Pin 9: Sid output (need amplifier for better result)
  */
 #include <pitches_it.h>
 //#include <NilRTOS.h>
 #include <jj-log.h>
 
+#include <SID.h>
+SID mySid;
 
 // To simplify prototiping, prefer constant to passing parameters to function
 // all way around
-const int speakerOut=8;
+const int speakerOut=9;  // Chnaged from 8 to 9 for sid sinth compatibility
 
 
 //const int DelayTime=44; // 44 is good
 
+///////////////////////////////
+///////////////////////////////
+void playNote(byte voice, uint16_t freq){
+  //uint16_t freq=freqBase*20;
+  byte low = freq & 0x00FF;
+  byte high= freq >>8;
+  mySid.set_register(voice+0,low);
+  mySid.set_register(voice+1,high);
+
+  Serial.print("Sid:");
+  Serial.println(freq);
+  /*Serial.print(freqBase);
+  Serial.print(F(" Fn="));
+  Serial.print(freq);
+  Serial.print(high);
+  Serial.print("/");
+  Serial.print(low);
+  Serial.println("");*/
+  
+  mySid.set_register(voice+4,33);
+}
+
+void stopSound(byte voice){
+  mySid.set_register(voice+4,32);
+  mySid.set_register(voice+0,0);
+  mySid.set_register(voice+1,0);
+}
+///////////////////////////////
+///////////////////////////////
 
 
 
@@ -319,6 +347,38 @@ const int axelTest2[] /*PROGMEM*/  ={
   -1,-1,-1,-1
 };
 
+/*
+  // see SID data sheet
+  // http://www.waitingforfriday.com/index.php/Commodore_SID_6581_Datasheet
+  // Fout = (Fn * 0.0596) Hz
+  // So to determine Fn (sid input we try...)
+  */
+int midi2FreqOLD(int midin);
+
+uint16_t  midi2Sid(int midin){
+  // NOTE_D03 --> 131
+  // C3  130.81	2195
+  //return midi2FreqOLD(midin)/0.0596;
+  /*
+ */
+  switch(midin){
+  case 60:return 0x122A;  // C4$	277.18	4650	122A 
+  case 61:return 0x133F;
+  case 62:return 0x1464;
+  case 63:return 0x159A;
+  case 64:return 0x16E3;
+  case 65:return 0x183F;
+  case 66:return 0x1981;
+  case 67:return 0x1B38;
+  case 68:return 0x1CD6;
+  case 69:return 0x1E80;
+  case 70:return 0x205E;
+  case 71:return 0x224B; 
+  case 72:return 0x2455; // C5$	554.37	9301	2455
+  default:return 0x0;
+    }
+}
+
 /**
  * Midi mapping.
  * C/DO is 60 __Octave3
@@ -330,7 +390,7 @@ const int axelTest2[] /*PROGMEM*/  ={
  * fn = f0 * (a)^n 
  * a  is 1.059463094359... 
  */
-int midi2Freq(int midin){
+int midi2FreqOLD(int midin){
   switch(midin){
   case 60:
     return NOTE_DO3;
@@ -376,15 +436,21 @@ byte stopIfIVKeyPressed(void ){
 /* See http://www.cprogramming.com/tutorial/function-pointers.html
  * 
  */
-void playMusic(const int music[], void (*delayFunction)(long unsigned int),
+void playMusic(int voice, const int music[], void (*delayFunction)(long unsigned int),
                byte (*stop)(void)){
   int ctime=0;
   l("Music Start");
   for (int i=0; music[i] != -1;i+=2) {
-    noTone(speakerOut);
+
+    // +++ noTone(speakerOut);
+    stopSound(voice);
+
     int midiNote=music[i+1];
     int du=music[i];
-    tone(speakerOut, midi2Freq(midiNote));
+
+    playNote(voice,midi2Sid(midiNote));
+    // ++ tone(speakerOut, midi2Freq(midiNote));
+    
     int wm=du-ctime;
     // Adjust time
     wm *=1.5;
@@ -401,11 +467,12 @@ void playMusic(const int music[], void (*delayFunction)(long unsigned int),
       break;
     }
   }
+  stopSound(voice);
   l("Music Ends.");
 }
 
 void playMusic(const int music[], void (*delayFunction)(long unsigned int)){
-  playMusic(music,delayFunction,stopIfIVKeyPressed);
+  playMusic(VOICE1,music,delayFunction,stopIfIVKeyPressed);
 }
 void playMusic(const int music[]){
   playMusic(music,delay);
@@ -439,16 +506,36 @@ void setup(){
  pinMode(13, OUTPUT);
 
  Serial.begin(9600);
- l("Music Midi Player");
+ l("Music Midi Player. SID PoweD");
  // Use jj-log.h
- l("Like a cruel angel,");
+ l("CBM64 Like a cruel angel,");
  l("young boy, become the legend!");
  Serial.println();
+ mySid.begin();
  //nilSysBegin();
  //tone(speakerOut,NOTE_DO4);
  //delay(1000);
- noTone(speakerOut);
+ // SID Setup: VOICE1,2,3
+
+ // Attack/decay; SUSTAIN/RELEASE
+ mySid.set_register(VOICE1+5,9);
+ mySid.set_register(VOICE1+6,9);
+
+ mySid.set_register(VOICE2+5,0xA0);
+ mySid.set_register(VOICE2+6,0xF0);
+
+ mySid.set_register(VOICE3+5,0xA4);
+ mySid.set_register(VOICE3+6,0xA0);
+
+ //Do a demo with three different voice configuration
+
+ mySid.set_register(24,15); // SET MAX VOLUME (unclear if needed)
+ playMusic(VOICE1,midiTest1, &slowDown,&stopIfIVKeyPressed);
+ playMusic(VOICE2,midiTest1, &slowDown,&stopIfIVKeyPressed);
+ playMusic(VOICE3,midiTest1, &slowDown,&stopIfIVKeyPressed);
+ //playMusic(axelTest2, &slowDown);
 }
+
 
 void loop() 
 {
@@ -463,7 +550,7 @@ void loop()
   }else if (keyval >=505 && keyval <=515){
   }else if (keyval >=5 && keyval <=10){
   }else{
-    noTone(speakerOut);
+    stopSound(VOICE1);
   }
   //
   //playMusic(midiTest1, &slowDown);

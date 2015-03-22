@@ -2,6 +2,7 @@
 const int triggerPort = 7;
 const int echoPort = 8;
 const int blueLed=11;
+const int redLed=10;
 const int maxDistCm=28; // was 28
 #include <NilRTOS.h>
 #include <jj-log.h>
@@ -11,6 +12,7 @@ void setup() {
   pinMode( triggerPort, OUTPUT );
   pinMode( echoPort, INPUT );
   pinMode( blueLed, OUTPUT);
+  pinMode( redLed, OUTPUT);
   Serial.begin( 9600 );
   Serial.println( "Sensore ultrasuoni: ");
   nilSysBegin();
@@ -78,8 +80,28 @@ NIL_THREAD(UltrasonicSensor,arg){
   }
 }
 
+/** NB: Fabio's Led need not a resistence 
+ *  but for better security we reduce power down to 50% of the duty cycle.
+ */
+const byte Rmax=128;
+NIL_WORKING_AREA(waRedCounter, 74);
+NIL_THREAD(RedCounter,arg){
+  static byte redValue=Rmax;
+  static byte verso=-1;
+  while(true){
+    analogWrite(redLed,redValue);
+    redValue+= verso*1;
+    nilThdSleepMilliseconds(10);
+    if(redValue ==0 || redValue ==Rmax) {
+      verso *=-1;
+    }
+  }
+}
+
+
 NIL_THREADS_TABLE_BEGIN()
-NIL_THREADS_TABLE_ENTRY(NULL /*TH NAME*/, UltrasonicSensor,          NULL, waUltrasonicSensor,          sizeof(waUltrasonicSensor))
+NIL_THREADS_TABLE_ENTRY(NULL /*TH NAME*/, UltrasonicSensor,          NULL, waUltrasonicSensor,    sizeof(waUltrasonicSensor))
+NIL_THREADS_TABLE_ENTRY(NULL /*TH NAME*/, RedCounter,                NULL, waRedCounter,          sizeof(waRedCounter))
 NIL_THREADS_TABLE_END()
 
 /*
