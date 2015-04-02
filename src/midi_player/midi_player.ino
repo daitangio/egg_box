@@ -2,7 +2,13 @@
 /** The midi player tester via SID emulator
  * A0 -> Analog input for a pool of button attached with a resistence
  * 
- * Pin 9: Sid output (need amplifier for better result)
+ * Pin 9:  Sid output Right (need amplifier for better result)
+ * Pin 10: Sid Voice2 Output Left (special)
+ * SPEC IDEA
+ * I2C Wiring interace.
+ * In Slave mode, send 6 bytes
+ * CONTROL, VOICE,HighValue,LowValue,DelayLow,DelayHigh(ms)
+ * ^^^Cmd   ^^^ Sid voice
  */
 #include <pitches_it.h>
 //#include <NilRTOS.h>
@@ -36,7 +42,9 @@ void playNote(byte voice, uint16_t freq){
   Serial.print("/");
   Serial.print(low);
   Serial.println("");*/
-  
+  // 33=%100001
+  //          ^ Gate on (ADSR on)
+  //     ^ Sawtooth Wave (Bit 5)
   mySid.set_register(voice+4,33);
 }
 
@@ -108,29 +116,21 @@ There are 24 MIDI Clocks in every quarter note.
 
 /* ./midicsv  doremifasolasido.mid  | egrep ^2 | egrep Note_on_c |cut -d , -f 5,2
  */
-const float scalaMusicale[]  ={ 
-  NOTE_DO4,1,
-  NOTE_RE4,1,
-  NOTE_MI4,1,
-  NOTE_FA4,1,
-  NOTE_SOL4,1,
-  NOTE_LA4,1,
-  NOTE_SI4,1,
-  NOTE_DO5,1,
-  -1,-1,-1,-1 /** CLOSE MUSIC */
-};
 
 const int midiTest1[]= {
-  0, 72,
-  480, 71,
-  960, 69,
-  1440, 67,
-  1920, 65,
-  2400, 64,
-  2880, 62,
-  3360, 60,
+  0, 60,
+  480, 62,
+  960, 64,
+  1440, 65,
+  1920, 67,
+  2400, 69,
+  2880, 71,
+  3360, 72,
   -1,-1,-1,-1
 };
+
+
+
 
 // Using PROGMEM is difficult
 // See http://todbot.com/blog/2008/06/19/how-to-do-big-strings-in-arduino/
@@ -355,29 +355,6 @@ const int axelTest2[] /*PROGMEM*/  ={
   */
 int midi2FreqOLD(int midin);
 
-uint16_t  midi2Sid(int midin){
-  // NOTE_D03 --> 131
-  // C3  130.81	2195
-  //return midi2FreqOLD(midin)/0.0596;
-  /*
- */
-  switch(midin){
-  case 60:return 0x122A;  // C4$	277.18	4650	122A 
-  case 61:return 0x133F;
-  case 62:return 0x1464;
-  case 63:return 0x159A;
-  case 64:return 0x16E3;
-  case 65:return 0x183F;
-  case 66:return 0x1981;
-  case 67:return 0x1B38;
-  case 68:return 0x1CD6;
-  case 69:return 0x1E80;
-  case 70:return 0x205E;
-  case 71:return 0x224B; 
-  case 72:return 0x2455; // C5$	554.37	9301	2455
-  default:return 0x0;
-    }
-}
 
 /**
  * Midi mapping.
@@ -448,7 +425,7 @@ void playMusic(int voice, const int music[], void (*delayFunction)(long unsigned
     int midiNote=music[i+1];
     int du=music[i];
 
-    playNote(voice,midi2Sid(midiNote));
+    playNote(voice, mySid.midi2Sid(midiNote));
     // ++ tone(speakerOut, midi2Freq(midiNote));
     
     int wm=du-ctime;
@@ -512,27 +489,54 @@ void setup(){
  l("young boy, become the legend!");
  Serial.println();
  mySid.begin();
+ mySid.playTestIntro();
  //nilSysBegin();
  //tone(speakerOut,NOTE_DO4);
  //delay(1000);
  // SID Setup: VOICE1,2,3
 
+ /* -------------
+    Viola/Strings
+    -------------
+    Waveform:      Sawtooth
+    Attack:        9
+    Decay:         0
+    Sustain:       12
+    Release:       8
+    Release Point: 0
+
+    Pipe Organ
+    Waveform:      Pulse
+    Pulse Width:   2000   Reg 2/3 (12 bit però)
+                          PWout = (PWnReg/40.95) %
+    Attack:        3
+    Decay:         6
+    Sustain:       6
+    Release:       3
+    Release Point  3
+ */
+ 
+
  // Attack/decay; SUSTAIN/RELEASE
  mySid.set_register(VOICE1+5,9);
  mySid.set_register(VOICE1+6,9);
 
- mySid.set_register(VOICE2+5,0xA0);
- mySid.set_register(VOICE2+6,0xF0);
-
+ /// Organ (somewhat)
+ mySid.set_register(VOICE2_Left+5,0x36);
+ mySid.set_register(VOICE2_Left+6,0x63);
+ 
+ 
  mySid.set_register(VOICE3+5,0xA4);
  mySid.set_register(VOICE3+6,0xA0);
 
  //Do a demo with three different voice configuration
 
  mySid.set_register(24,15); // SET MAX VOLUME (unclear if needed)
- playMusic(VOICE1,midiTest1, &slowDown,&stopIfIVKeyPressed);
- playMusic(VOICE2,midiTest1, &slowDown,&stopIfIVKeyPressed);
- playMusic(VOICE3,midiTest1, &slowDown,&stopIfIVKeyPressed);
+ /*
+ playMusic(VOICE2_Left,midiTest1, &slowDown,&stopIfIVKeyPressed);
+ playMusic(VOICE1_Right,midiTest1, &slowDown,&stopIfIVKeyPressed);
+ playMusic(VOICE3_Right,midiTest1, &slowDown,&stopIfIVKeyPressed);
+ */
  //playMusic(axelTest2, &slowDown);
 }
 
@@ -546,8 +550,10 @@ void loop()
   if(keyval >=1022 ){
     playMusic(axelTest2, &speedUp);
   }else if (keyval >= 990 && keyval <= 1010 ){
-    playMusic(midiTest1, &slowDown);
+    mySid.playTestIntro();
+    //playMusic(midiTest1, &slowDown);
   }else if (keyval >=505 && keyval <=515){
+    playMusic(VOICE2_Left, axelTest2, &speedUp,&stopIfIVKeyPressed);
   }else if (keyval >=5 && keyval <=10){
   }else{
     stopSound(VOICE1);
