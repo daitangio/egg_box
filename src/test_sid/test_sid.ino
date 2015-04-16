@@ -116,3 +116,9 @@ void loop()
  Serial.println("SID STOPS HERE");
   //while(1); // do nothing and loop forever
 }
+/*
+ * Local variables:
+ * mode: c++
+ * mode: company
+ * End:
+ */

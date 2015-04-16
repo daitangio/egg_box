@@ -347,58 +347,6 @@ const int axelTest2[] /*PROGMEM*/  ={
   -1,-1,-1,-1
 };
 
-/*
-  // see SID data sheet
-  // http://www.waitingforfriday.com/index.php/Commodore_SID_6581_Datasheet
-  // Fout = (Fn * 0.0596) Hz
-  // So to determine Fn (sid input we try...)
-  */
-int midi2FreqOLD(int midin);
-
-
-/**
- * Midi mapping.
- * C/DO is 60 __Octave3
- * C C# D D# E F F# G G# A A# B (71)
- * C= 60,72,84...120
- * C=48,36...0 
- * See http://phy.mtu.edu/~suits/NoteFreqCalcs.html
- * for a more dinamic formula...
- * fn = f0 * (a)^n 
- * a  is 1.059463094359... 
- */
-int midi2FreqOLD(int midin){
-  switch(midin){
-  case 60:
-    return NOTE_DO3;
-  case 61:
-    return NOTE_DOS3;
-  case 62:
-    return NOTE_RE3;
-  case 63:
-    return NOTE_RES3;
-  case 64:
-    return NOTE_MI3;
-  case 65:
-    return NOTE_FA3;
-  case 66:
-    return NOTE_FAS3;
-  case 67:
-    return NOTE_SOL3;
-  case 68:
-    return NOTE_SOLS3;
-  case 69:
-    return NOTE_LA3;
-  case 70:
-    return NOTE_LAS3;
-  case 71:
-    return NOTE_SI4;
-  case 72:
-    return NOTE_DO4;
-  default:
-    return 0;
-  }
-}
 
 byte stopIfIVKeyPressed(void ){
   int keyval=analogRead(A0);
@@ -422,7 +370,7 @@ void playMusic(int voice, const int music[], void (*delayFunction)(long unsigned
     // +++ noTone(speakerOut);
     stopSound(voice);
 
-    int midiNote=music[i+1];
+    uint8_t midiNote=(uint8_t) music[i+1];
     int du=music[i];
 
     playNote(voice, mySid.midi2Sid(midiNote));
