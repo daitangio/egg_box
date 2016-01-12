@@ -158,7 +158,7 @@ class NilStatsFIFO {
  /** Register a first-chance function for the given atom.
    * Put the message back in queue if fails
    */
- void onReceive(Type atom2Check, void (*myProcFun)(Type)){
+ void onReceive(Type atom2Check, void (*myProcFun)(Type) ){
     Type* actionPtr=waitData(TIME_IMMEDIATE);
     if(!actionPtr) return; // No data return
     Type action=*actionPtr;
@@ -181,13 +181,29 @@ class NilStatsFIFO {
   size_t _tail;
 };
 
-// API 16bit atoms
+// API word: 16bit atoms (32bit are unsigned long)
 enum Atom : word {
   ok, error,on, off
 };
 
-// Declare ALSO the MBOX of one element
+typedef enum DataType : byte {  ATOM, INTEGER, STRING } DataType ;
+
+typedef union MsgValue {
+  Atom atom;
+  long l;
+  char* string;
+} MsgValue;
+
+typedef struct Msg{
+  DataType type;  // switch(d.type)....
+  MsgValue v; 
+}Msg;
+
+
+  
+// Declare ALSO the MBOX of the led server
 NilStatsFIFO<Atom, 10> LedServerMBOX;
+//? NilStatsFIFO<Msg, 10> LedServerMBOX;
 
 //------------------------------------------------------------------------------
 // Declare a stack with 64 bytes beyond context switch and interrupt needs.
@@ -230,7 +246,7 @@ NIL_WORKING_AREA(waThread2, 64);
 
 // Declare thread function for thread 2.
 // This thread "uses" the led guy
-/** Original rlang API
+/** Original erlang API
 rpc(Pid, Query) ->
  Ref = make_ref(),
  Pid ! {self(), Ref, Query},
@@ -252,37 +268,17 @@ NIL_THREAD(Thread2, arg) {
     Atom* freeSlot=LedServerMBOX.waitFree(TIME_INFINITE);
     // Continue if no free space.
     //if (freeSlot == 0) continue;
-    Serial.print("Sending on request");
-    *freeSlot=on; 
-    LedServerMBOX.signalData();
-    
-    nilThdSleep(400);    
-    Serial.print("Sending off request");
-    freeSlot=LedServerMBOX.waitFree(TIME_INFINITE);
-    *freeSlot=off;
-    LedServerMBOX.signalData();
-
-
-    
-    Serial.print("Sending ok request1");
-    freeSlot=LedServerMBOX.waitFree(TIME_INFINITE);
-    *freeSlot=ok;
-    LedServerMBOX.signalData();
-
-    Serial.print("Sending 3 fast ok request");
+    Serial.print("Sending on request (async)");
+    LedServerMBOX.send(on);    
+    nilThdSleep(400);
+    LedServerMBOX.send(off);
+    LedServerMBOX.send(ok);
     LedServerMBOX.send(ok);
     LedServerMBOX.send(ok); 
     LedServerMBOX.send(ok);
+    // Emulate Pid ! {self(), Ref, Query},
+    // Emulate  receive
     
-    freeSlot=LedServerMBOX.waitFree(TIME_INFINITE);
-    *freeSlot=ok;
-    LedServerMBOX.signalData();
-    freeSlot=LedServerMBOX.waitFree(TIME_INFINITE);
-    *freeSlot=ok;
-    LedServerMBOX.signalData();
-    freeSlot=LedServerMBOX.waitFree(TIME_INFINITE);
-    *freeSlot=ok;
-    LedServerMBOX.signalData();
     Serial.print("Sleeping a bit");
     nilThdSleep(2000);
   }
@@ -322,3 +318,6 @@ void loop() {
   nilThdDelayMilliseconds(1000);
 }
 
+// Local variables:
+// mode:c++
+// End:
