@@ -24,8 +24,9 @@ template<typename Type, size_t Size>
 class NilStatsFIFO {
  public:
   /** constructor */
-  NilStatsFIFO() : _head(0), _maxOverrun(0),
+  NilStatsFIFO(Type biMessageIntroducer) : _head(0), _maxOverrun(0),
     _minFree(Size), _overrun(0), _tail(0) {
+    _preBiMessage=biMessageIntroducer;
     nilSemInit(&_dataSem, 0);
     nilSemInit(&_freeSem, Size);
   }
@@ -154,7 +155,40 @@ class NilStatsFIFO {
     *freeSlot=toSend; 
     signalData();
  }
- 
+
+  
+  void send(Type v, Type p) {
+    // Send a double guy using the preface
+    send(_preBiMessage);
+    send(v);
+    send(p);
+  }
+
+  Type receive(){
+    Atom* actionPtr=waitData(TIME_INFINITE);
+    // if(!actionPtr) continue; // No data continue
+    Atom action=*actionPtr;
+    return action;
+  }
+
+  
+  /** Blocking receive return the rest of the headmatch
+   * or the _preBiMessage as error
+   */
+  Type receive(Type headMatch){
+    Atom* actionPtr=waitData(TIME_INFINITE);
+    Atom action=*actionPtr;
+    if(action==_preBiMessage){
+      Action header=(*waitData(TIME_INFINITE));
+      if(header==headMatch){
+        Atom toReturn=(*waitData(TIME_INFINITE));
+        return toReturn;
+      }
+    }
+    // Err
+    return _preBiMessage;
+  }
+  
  /** Register a first-chance function for the given atom.
    * Put the message back in queue if fails
    */
@@ -172,6 +206,7 @@ class NilStatsFIFO {
  
  private:
   Type _data[Size];
+  Type _preBiMessage;
   semaphore_t _dataSem;
   semaphore_t _freeSem;
   size_t _head;
@@ -181,28 +216,19 @@ class NilStatsFIFO {
   size_t _tail;
 };
 
+
 // API word: 16bit atoms (32bit are unsigned long)
 enum Atom : word {
-  ok, error,on, off
+    m2=0, /** Message with params (used for 2-pair messages) */
+    ok, error,on, off, // Actions
+    thread2, /* Placeholder */
+    ledServer  
 };
-
-typedef enum DataType : byte {  ATOM, INTEGER, STRING } DataType ;
-
-typedef union MsgValue {
-  Atom atom;
-  long l;
-  char* string;
-} MsgValue;
-
-typedef struct Msg{
-  DataType type;  // switch(d.type)....
-  MsgValue v; 
-}Msg;
 
 
   
 // Declare ALSO the MBOX of the led server
-NilStatsFIFO<Atom, 10> LedServerMBOX;
+NilStatsFIFO<Atom, 10> LedServerMBOX(m2);
 //? NilStatsFIFO<Msg, 10> LedServerMBOX;
 
 //------------------------------------------------------------------------------
