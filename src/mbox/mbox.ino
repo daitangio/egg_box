@@ -165,32 +165,14 @@ class NilStatsFIFO {
   }
 
   Type receive(){
-    Atom* actionPtr=waitData(TIME_INFINITE);
+    Type* actionPtr=waitData(TIME_INFINITE);
     // if(!actionPtr) continue; // No data continue
-    Atom action=*actionPtr;
+    Type action=*actionPtr;
     return action;
   }
 
-  
-  /** Blocking receive return the rest of the headmatch
-   * or the _preBiMessage as error
-   */
-  Type receive(Type headMatch){
-    Atom* actionPtr=waitData(TIME_INFINITE);
-    Atom action=*actionPtr;
-    if(action==_preBiMessage){
-      Action header=(*waitData(TIME_INFINITE));
-      if(header==headMatch){
-        Atom toReturn=(*waitData(TIME_INFINITE));
-        return toReturn;
-      }
-    }
-    // Err
-    return _preBiMessage;
-  }
-  
  /** Register a first-chance function for the given atom.
-   * Put the message back in queue if fails
+   * Put the message back in queue if fails and come back
    */
  void onReceive(Type atom2Check, void (*myProcFun)(Type) ){
     Type* actionPtr=waitData(TIME_IMMEDIATE);
@@ -203,6 +185,41 @@ class NilStatsFIFO {
       send(action);
     }
  }
+  
+  /// EXPERIMENTAL PART (STILL TO WORK OUT)
+  
+  /** Blocking receive return the rest of the headmatch
+   * or the _preBiMessage as error
+   * is like an erlang
+   * receive ({ atom_headMatch , Value}) 
+   * which returns the Value
+   */
+  Type receive2(Type headMatch){
+    Type* actionPtr=waitData(TIME_INFINITE);
+    Type action=*actionPtr;
+    if(action==_preBiMessage){
+      Type header=(*waitData(TIME_INFINITE));
+      if(header==headMatch){
+        Type toReturn=(*waitData(TIME_INFINITE));
+        return toReturn;
+      }
+    }
+    // Err
+    return _preBiMessage;
+  }
+
+  void onReceive2(Type match, void (*myProcFun)(Type) ){
+    Type d= receive(match);
+    if(d== _preBiMessage) {
+      // ???? bad luck, throw error
+      // ???
+    }else{
+      myProcFun(d);
+    }
+  }
+  
+  
+
  
  private:
   Type _data[Size];
@@ -218,7 +235,7 @@ class NilStatsFIFO {
 
 
 // API word: 16bit atoms (32bit are unsigned long)
-enum Atom : word {
+enum Atom : byte {
     m2=0, /** Message with params (used for 2-pair messages) */
     ok, error,on, off, // Actions
     thread2, /* Placeholder */
