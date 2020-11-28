@@ -4,7 +4,10 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/lib/avr/include/"
+                "/usr/lib/avr/include/",
+                "/usr/share/arduino/hardware/arduino/cores/arduino",
+                /* Variant /usr/share/arduino/hardware/arduino/variants/mega/pins_arduino.h */
+                "/usr/share/arduino/hardware/arduino/variants/standard"                
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
