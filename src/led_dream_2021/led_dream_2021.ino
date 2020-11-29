@@ -1,79 +1,121 @@
 /*
   Blink evolution is here!
-  The system will sleep until a special button is pressed
-
-
+  The system will sleep until you press the button on pin wakeupButton
+  Then a magic led dance will start
  */
 
-#include <NilRTOS.h>
-
-// #define DEBUG yeppa
-//#define DEBUG_LOG yeppa
+#define DEBUG_LOG yeppa
 #include <jj-log.h>
+
+#include <avr/sleep.h>
 
 // Pin 13 has an LED connected on most Arduino boards.
 // give it a name:
 const int aliveLed = 13;
+const int wakeupButton = 2; // MEGA PINS are 2, 3, 18, 19, 20, 21
+const int DelayTime = 4;   // 44 is good
+/////////////////////////////////////////////////////////////////
+char sleepMode = 1; // 1 = Start running, 0 = Start Sleeping
+/////////////////////////////////////////////////////////////////
+
+
+void sleepModeRequested()
+{
+  if (sleepMode == 1)
+  {
+    sleepMode = 0;
+    l("Requesting Sleep");
+  }
+  // Disable interrupt to be one time fire
+  detachInterrupt(digitalPinToInterrupt(wakeupButton));
+}
+
+
+void wakeUp(){
+  l("COOOME BACK");
+  sleep_disable();
+  detachInterrupt(digitalPinToInterrupt(wakeupButton));
+}
 
 // the setup routine runs once when you press reset:
-void setup() {                
+void setup()
+{
   // initialize the digital pin as an output.
-  pinMode(aliveLed, OUTPUT);   
+  pinMode(aliveLed, OUTPUT);
+  pinMode(wakeupButton, INPUT_PULLUP);
+
+  if(sleepMode == 1){
+    // if the initial state is 1 it means we are not sleeping so we must enable the interrupt
+    attachInterrupt(digitalPinToInterrupt(wakeupButton), sleepModeRequested, CHANGE);
+  }
+
+  #ifdef DEBUG_LOG
   Serial.begin(9600);
-  // l("2021 Led Dreams");
-  nilSysBegin();
+  l("2021 Led Dreams");
+  #endif    
 }
 
 
-void loop() {
-    #ifdef DEBUG
-      nilPrintStackSizes(&Serial);
-      nilPrintUnusedStack(&Serial);
-      Serial.println();
-    
-      // Delay for one second.
-      // Must not sleep in loop so use nilThdDelayMilliseconds().
-      // Arduino delay() can also be used in loop().
-      nilThdDelayMilliseconds(1000);
-    #endif
 
-}
+void loop()
+{
+  // When we start we are in sleep 0
 
-const int DelayTime=44; // 44 is good
+  // Fade cycle
+  if (sleepMode != 0)
+  {   
 
-NIL_WORKING_AREA(waBreathLed, 8);
-NIL_THREAD(BreathLed,arg){
-  const int minBright=25;
-  const int maxBright=255;
-  while(true){
-    int pin=aliveLed;
-    int brightness = minBright;    // how bright the LED is
-    int fadeAmount = 5;    // how many points to fade the LED by
-  
+
+    const int minBright = 0;
+    const int maxBright = 250;
+    const int fadeAmount = 4; // how many points to fade the LED by
+
+    int pin = aliveLed;
+    int brightness = minBright; // how bright the LED is
+
     analogWrite(pin, brightness);
     // fade in,,,,
-    while(brightness <maxBright ){
+    while (brightness < maxBright)
+    {
       brightness = brightness + fadeAmount;
       analogWrite(pin, brightness);
-      nilThdSleepMilliseconds(DelayTime);
+      delay(DelayTime);
     }
-    
+
     // fad out...
-    while(brightness > minBright ){
+    while (brightness > minBright)
+    {
       brightness = brightness - fadeAmount;
       analogWrite(pin, brightness);
-      nilThdSleepMilliseconds(DelayTime);
+      delay(DelayTime);
     }
-    
-    
-  }    
-}
+    // extra delay after fadeout
+    delay(10 * DelayTime);
 
-NIL_THREADS_TABLE_BEGIN()
-NIL_THREADS_TABLE_ENTRY(NULL            , BreathLed, NULL, waBreathLed, sizeof(waBreathLed))
-NIL_THREADS_TABLE_END()
+  }
+  else
+  {
+    /* For the sleep mode refer to https://thekurks.net/blog/2018/1/24/guide-to-arduino-sleep-mode
+     * IT IS VERY VERY IMPORTANT to have some deplay to let stabilize it
+     */
+    l("Sleep Mode...Requested");
+    // Remove old interrupts if any
+    detachInterrupt(digitalPinToInterrupt(wakeupButton));
+    delay(DelayTime * 10);
+    sleep_enable();
+    attachInterrupt(digitalPinToInterrupt(wakeupButton), wakeUp, LOW);
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    delay(1000);
+    sleep_cpu();
+    l("WAAAKE UP2...Setting up sleep mechinics");
+    sleepMode = 1;
+    delay(400);
+    attachInterrupt(digitalPinToInterrupt(wakeupButton), sleepModeRequested, CHANGE);
+  }
+}
 
 // Local variables:
 // mode:c++
 // mode:company
 // End:
+

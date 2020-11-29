@@ -7,7 +7,7 @@ BOARD_SUB= atmega2560
 
 
 USER_LIB_PATH= ../libraries
-ARDUINO_LIBS = egg_utils NilRTOS
+ARDUINO_LIBS = egg_utils
  
 
 # add -DDEBUG -DDEBUG_LOG  for extra info
