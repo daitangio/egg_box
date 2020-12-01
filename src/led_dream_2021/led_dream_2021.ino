@@ -37,10 +37,10 @@ LiquidCrystal_I2C lcd(0x3F,20,4); // set the LCD address to 0x27 for a 20 chars 
 // Pin 13 has an LED connected on most Arduino boards.
 // give it a name:
 const int aliveLed = 13;
-const int wakeupButton = 2; // MEGA PINS are 2, 3, 18, 19, 20, 21
+const int wakeupButton = 2; // MEGA PINS for interrupt  are 2, 3, 18, 19, 20, 21
 const int DelayTime = 22;   // 44 is good
 /////////////////////////////////////////////////////////////////
-char sleepMode = 1; // 1 = Start running, 0 = Start Sleeping
+char runningMode = 1; // 1 = Start running, 0 = Start Sleeping
 /////////////////////////////////////////////////////////////////
 long super_counter=1;
 
@@ -66,11 +66,11 @@ void sayLcdMsg(const __FlashStringHelper *str){
 
 
 ///// Sleep Mechianics
-void sleepModeRequested()
+void sleepModeCheckCallback()
 {
-  if (sleepMode == 1)
+  if (runningMode == 1)
   {
-    sleepMode = 0;
+    runningMode = 0;
     l("* Requesting Sleep...");
   }
   // Disable interrupt to be one time fire
@@ -103,9 +103,9 @@ void setup()
   pinMode(aliveLed, OUTPUT);
   pinMode(wakeupButton, INPUT_PULLUP);
 
-  if(sleepMode == 1){
+  if(runningMode == 1){
     // if the initial state is 1 it means we are not sleeping so we must enable the interrupt
-    attachInterrupt(digitalPinToInterrupt(wakeupButton), sleepModeRequested, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(wakeupButton), sleepModeCheckCallback, CHANGE);
   }
 
   #ifdef DEBUG_LOG
@@ -117,7 +117,7 @@ void setup()
 
 
 inline void checkForSleep(){
-  if (sleepMode == 0){
+  if (runningMode == 0){
     /* For the sleep mode refer to https://thekurks.net/blog/2018/1/24/guide-to-arduino-sleep-mode
      * IT IS VERY VERY IMPORTANT to have some delay to let stabilize it
      * Also it is unclear if stack is correctly preserved after wakeup (it seems)
@@ -140,12 +140,12 @@ inline void checkForSleep(){
     sleep_cpu();
     l("WAAAKE UP2 Setting up sleep interrupt again");
     // Try to reinit lcd and show stuff    
-    sleepMode = 1;
+    runningMode = 1;
     delay(400);
 
     lcdInit();    
     
-    attachInterrupt(digitalPinToInterrupt(wakeupButton), sleepModeRequested, CHANGE);    
+    attachInterrupt(digitalPinToInterrupt(wakeupButton), sleepModeCheckCallback, CHANGE);    
   }
 }
 
@@ -168,7 +168,7 @@ void loop()
   // We can start in any sleep state and all will work
 
   // Fade cycle
-  if (sleepMode != 0)
+  if (runningMode == 1 /** Running? */)
   {   
 
     say("Pulse Loop Start");
@@ -204,9 +204,9 @@ void loop()
     lcd.print((long) super_counter );
     lcd.print("]");
 
-    
-  }else{
+    // We must sleep ?
     checkForSleep();
+    
   }
 }
 
