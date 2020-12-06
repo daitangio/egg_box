@@ -18,7 +18,7 @@ Interaction with LCD is very delicate: AVOID printing inside interrupt
 
 Feature:
 + LCD Logging
-+ 2-lines message display
++ 2-lines message display with scrolling
 
 
  */
@@ -38,11 +38,15 @@ LiquidCrystal_I2C lcd(0x3F,20,4); // set the LCD address to 0x27 for a 20 chars 
 // give it a name:
 const int aliveLed = 13;
 const int wakeupButton = 2; // MEGA PINS for interrupt  are 2, 3, 18, 19, 20, 21
-const int DelayTime = 22;   // 44 is good
+const int DelayTime = 44;   // 44 is good
 /////////////////////////////////////////////////////////////////
 char runningMode = 1; // 1 = Start running, 0 = Start Sleeping
 /////////////////////////////////////////////////////////////////
 long super_counter=1;
+
+int stripeLeds[] = { 12, 13,   9  };
+const int stripeLength=sizeof(stripeLeds)/sizeof(stripeLeds[0]);
+
 
 
 /**
@@ -54,8 +58,8 @@ void sayLcdMsg(const __FlashStringHelper *str){
   lcd.setCursor(0,3);  
   lcd.print(str);
 
+  // Scrolling logic:
   lcd.setCursor(0,2);
-  // Clear prev line
   lcd.print(F("                    "));
   lcd.setCursor(0,2);
   lcd.print(prevMsg);
@@ -89,7 +93,8 @@ void lcdInit(){
   lcd.init(); 
   lcd.backlight();
   lcd.setCursor(0,0);
-  lcd.print("** 2021 LD");
+  lcd.print("2021 LD v1.1 ");
+  lcd.print(stripeLength);
   
   say("Ready.");
 }
@@ -102,6 +107,10 @@ void setup()
   // initialize the digital pin as an output.
   pinMode(aliveLed, OUTPUT);
   pinMode(wakeupButton, INPUT_PULLUP);
+
+  for(int i=0; i<stripeLength; i++) {
+    pinMode(stripeLeds[i], OUTPUT);
+  }
 
   if(runningMode == 1){
     // if the initial state is 1 it means we are not sleeping so we must enable the interrupt
@@ -131,7 +140,14 @@ inline void checkForSleep(){
     delay(200);
 
     delay(440);
+
+    // Turn off all
+    for(int i=0; i<stripeLength; i++) {
+        analogWrite(stripeLeds[i], 0 );
+    }
     lcd.noBacklight();
+
+
 
     sleep_enable();
     attachInterrupt(digitalPinToInterrupt(wakeupButton), wakeUp, LOW);
@@ -173,36 +189,47 @@ void loop()
 
     say("Pulse Loop Start");
     const int minBright = 0;
-    const int maxBright = 128;
-    const int fadeAmount = 4; // how many points to fade the LED by
+    
+    const int fadeAmount = 16; // how many points to fade the LED by
+    const int maxBright = 255 - (stripeLength*fadeAmount);
 
-    int pin = aliveLed;
+
     int brightness = minBright; // how bright the LED is
-
-    analogWrite(pin, brightness);
-    // fade in,,,,
+    
+    for(int i=0; i<stripeLength; i++) {        
+        analogWrite(stripeLeds[i], 0 );
+    }  
+    
+    // fade in....
     while (brightness < maxBright)
-    {
-      brightness = brightness + fadeAmount;
-      analogWrite(pin, brightness);      
+    {      
+      for(int i=0; i<stripeLength; i++) {
+        brightness = brightness + fadeAmount;
+        analogWrite(stripeLeds[i], brightness);
+        
+      }
+      
       my_delay(DelayTime);
     }
     say("Pulse Loop Mid");
     // fad out...
     while (brightness > minBright)
     {
-      brightness = brightness - fadeAmount;
-      analogWrite(pin, brightness);
+      
+      for(int i=0; i<stripeLength; i++) {
+        brightness = brightness - fadeAmount;
+        analogWrite(stripeLeds[i], brightness );    
+        
+      }
       my_delay(DelayTime);
     }
     
 
 
     super_counter++;
-    lcd.setCursor(14,0);
-    lcd.print("[");
-    lcd.print((long) super_counter );
-    lcd.print("]");
+    lcd.setCursor(15,0);
+    lcd.print(">");
+    lcd.print((long) super_counter );    
 
     // We must sleep ?
     checkForSleep();
