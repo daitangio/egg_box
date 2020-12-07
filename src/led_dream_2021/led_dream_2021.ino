@@ -24,10 +24,11 @@ Feature:
  */
 
 // #define DEBUG_LOG yeppa
+#define LCD_DEBUG_LOG yeppa
+
 #include <jj-log.h>
-
 #include <avr/sleep.h>
-
+#include "mem_free.h"
 
 // CHECK ON MEGA The I2C pins on the board are 20 and 21.
 #include <LiquidCrystal_I2C.h>
@@ -38,14 +39,19 @@ LiquidCrystal_I2C lcd(0x3F,20,4); // set the LCD address to 0x27 for a 20 chars 
 // give it a name:
 const int aliveLed = 13;
 const int wakeupButton = 2; // MEGA PINS for interrupt  are 2, 3, 18, 19, 20, 21
-const int DelayTime = 44;   // 44 is good
+const int DelayTime = 88;   // 44 is good
 /////////////////////////////////////////////////////////////////
 char runningMode = 1; // 1 = Start running, 0 = Start Sleeping
 /////////////////////////////////////////////////////////////////
-long super_counter=1;
+
 
 int stripeLeds[] = { 12, 13,   9  };
 const int stripeLength=sizeof(stripeLeds)/sizeof(stripeLeds[0]);
+
+
+
+
+
 
 
 
@@ -53,20 +59,62 @@ const int stripeLength=sizeof(stripeLeds)/sizeof(stripeLeds[0]);
  * LCD Status message printing
  * Also support a minimal scrolling mechianics
  */
-void sayLcdMsg(const __FlashStringHelper *str){
-  static __FlashStringHelper *prevMsg=F("");
-  lcd.setCursor(0,3);  
-  lcd.print(str);
+inline void sayLcdMsg(String str){
+  #ifdef LCD_DEBUG_LOG
+  
+  static int8_t super_counter=1;
+  static String prevMsg1="";
+  static String prevMsg2="";
+
+  String finalMsg="";
+  finalMsg.concat(super_counter);
+  finalMsg.concat(" ");
+  finalMsg.concat(str);
+
+  lcd.setCursor(0,3); 
+  lcd.print(F("                    "));
+  lcd.setCursor(0,3); 
+  lcd.print(finalMsg);  
 
   // Scrolling logic:
   lcd.setCursor(0,2);
   lcd.print(F("                    "));
   lcd.setCursor(0,2);
-  lcd.print(prevMsg);
-  prevMsg=str;
+  lcd.print(prevMsg1);
+
+  lcd.setCursor(0,1);
+  lcd.print(F("                    "));
+  lcd.setCursor(0,1);
+  lcd.print(prevMsg2);
+
+  prevMsg2=prevMsg1;
+  prevMsg1=finalMsg;
+
+
+  // Print mem free on top
+  lcd.setCursor(0,0);
+  lcd.print(F("                    "));
+  lcd.setCursor(0,0);
+  String memFree=String(F("v1.2 Mem:"));
+  memFree.concat(freeMemory());
+  lcd.print(memFree);
+  
+
+  // Ensure super counter value never exceed 99
+  super_counter= (super_counter+1) % 100;
+
+
+  #else
+    return;
+  #endif;
+  
 }
 
-#define say(c)      sayLcdMsg(F(c));
+// USe String constructor to "eat" static strings
+#define say(c)      sayLcdMsg(String(F(c)));
+
+// debug will be defined as empty function when debug mode is off
+#define debug(c)    sayLcdMsg(String(F(c)));
 
 
 ///// Sleep Mechianics
@@ -110,6 +158,7 @@ void setup()
 
   for(int i=0; i<stripeLength; i++) {
     pinMode(stripeLeds[i], OUTPUT);
+    analogWrite(stripeLeds[i], 0 );
   }
 
   if(runningMode == 1){
@@ -118,8 +167,8 @@ void setup()
   }
 
   #ifdef DEBUG_LOG
-  Serial.begin(9600);
-  l("2021 Led Dreams");
+    Serial.begin(9600);
+    l("2021 Led Dreams");
   #endif    
 }
 
@@ -186,50 +235,62 @@ void loop()
   // Fade cycle
   if (runningMode == 1 /** Running? */)
   {   
-
-    say("Pulse Loop Start");
-    const int minBright = 0;
     
-    const int fadeAmount = 16; // how many points to fade the LED by
-    const int maxBright = 255 - (stripeLength*fadeAmount);
+    const int minBright = 0;    
+    const int fadeAmount = 64; // how many points to fade the LED by
+    const int maxBright = 255 ;
 
 
     int brightness = minBright; // how bright the LED is
     
-    for(int i=0; i<stripeLength; i++) {        
-        analogWrite(stripeLeds[i], 0 );
-    }  
     
-    // fade in....
-    while (brightness < maxBright)
-    {      
+    for(int dimezzer=1; dimezzer <= 64; dimezzer*=2 ){
       for(int i=0; i<stripeLength; i++) {
-        brightness = brightness + fadeAmount;
+        switch(i){
+          case 0:
+            brightness=64  / dimezzer ;
+            break;
+          case 1:
+            brightness=128 / dimezzer ;
+            break;
+          case 2:
+            brightness=256 / dimezzer;
+            break;
+          default:
+            brightness=0;
+            break;
+          
+        }
         analogWrite(stripeLeds[i], brightness);
-        
+        my_delay(DelayTime);      
       }
-      
-      my_delay(DelayTime);
     }
-    say("Pulse Loop Mid");
-    // fad out...
-    while (brightness > minBright)
-    {
-      
+
+    for(int expander=64; expander >1; expander/=2 ){
       for(int i=0; i<stripeLength; i++) {
-        brightness = brightness - fadeAmount;
-        analogWrite(stripeLeds[i], brightness );    
-        
+        switch(i){
+          case 0:
+            brightness=1 * expander ;
+            break;
+          case 1:
+            brightness=3 * expander ;
+            break;
+          case 2:
+            brightness=4 * expander ;
+            break;
+          default:
+            brightness=0;
+            break;
+          
+        }
+        analogWrite(stripeLeds[i], brightness);
+        my_delay(DelayTime);      
       }
-      my_delay(DelayTime);
     }
+
     
+    say("Cycle ends");
 
-
-    super_counter++;
-    lcd.setCursor(15,0);
-    lcd.print(">");
-    lcd.print((long) super_counter );    
 
     // We must sleep ?
     checkForSleep();
