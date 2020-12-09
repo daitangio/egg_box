@@ -39,7 +39,11 @@ LiquidCrystal_I2C lcd(0x3F,20,4); // set the LCD address to 0x27 for a 20 chars 
 // give it a name:
 const int aliveLed = 13;
 const int wakeupButton = 2; // MEGA PINS for interrupt  are 2, 3, 18, 19, 20, 21
-const int DelayTime = 88;   // 44 is good
+#ifdef LCD_DEBUG_LOG
+const int DelayTime = 33;  // Lcd debug will slow down a lot
+#else
+const int DelayTime = 44;   // 44 is good
+#endif
 /////////////////////////////////////////////////////////////////
 char runningMode = 1; // 1 = Start running, 0 = Start Sleeping
 /////////////////////////////////////////////////////////////////
@@ -54,51 +58,65 @@ const int stripeLength=sizeof(stripeLeds)/sizeof(stripeLeds[0]);
 
 
 
-
+const int dual_mode_period=5;
 /**
  * LCD Status message printing
  * Also support a minimal scrolling mechianics
+ * It is a dual mode lcd
  */
 inline void sayLcdMsg(String str){
   #ifdef LCD_DEBUG_LOG
-  
   static int8_t super_counter=1;
   static String prevMsg1="";
   static String prevMsg2="";
 
-  String finalMsg="";
-  finalMsg.concat(super_counter);
-  finalMsg.concat(" ");
-  finalMsg.concat(str);
+  // Clearing lcd is a slow procedure but because we need to scroll all display it seems a good move
+  // to reduce code size and also increment speed
+  lcd.clear();
+  if ((super_counter % dual_mode_period) == 0) {
+    lcd.setCursor(0,1);
+    lcd.print(F("Run Stats:"));
+    lcd.print( (float)(millis() / 1000));
+    lcd.print(F("s"));
+    lcd.setCursor(0,2);    
+    String memFree=String(F("Mem:"));
+    memFree.concat(freeMemory());  
+    lcd.print(memFree);
 
-  lcd.setCursor(0,3); 
-  lcd.print(F("                    "));
-  lcd.setCursor(0,3); 
-  lcd.print(finalMsg);  
+    lcd.setCursor(0,3);
+    lcd.print(F("by Giovanni Giorgi"));
+  }else {
 
-  // Scrolling logic:
-  lcd.setCursor(0,2);
-  lcd.print(F("                    "));
-  lcd.setCursor(0,2);
-  lcd.print(prevMsg1);
+    String finalMsg="";
+    finalMsg.concat(super_counter);
+    finalMsg.concat(" ");
+    finalMsg.concat(str);
 
-  lcd.setCursor(0,1);
-  lcd.print(F("                    "));
-  lcd.setCursor(0,1);
-  lcd.print(prevMsg2);
+    
+    lcd.setCursor(0,3); 
+    lcd.print(finalMsg);  
 
-  prevMsg2=prevMsg1;
-  prevMsg1=finalMsg;
+    // Scrolling logic:
+    
+    lcd.setCursor(0,2);
+    lcd.print(prevMsg1);
 
+    
+    lcd.setCursor(0,1);
+    lcd.print(prevMsg2);
 
-  // Print mem free on top
-  lcd.setCursor(0,0);
-  lcd.print(F("                    "));
-  lcd.setCursor(0,0);
-  String memFree=String(F("v1.2 Mem:"));
-  memFree.concat(freeMemory());
-  lcd.print(memFree);
+    prevMsg2=prevMsg1;
+    prevMsg1=finalMsg;
+    // Print mem free on top
+
+    lcd.setCursor(0,0);
+    String memFree=String(F("v1.2.1 Mem:"));
+    memFree.concat(freeMemory());
+    lcd.print(memFree);
   
+  }
+
+ 
 
   // Ensure super counter value never exceed 99
   super_counter= (super_counter+1) % 100;
@@ -110,8 +128,9 @@ inline void sayLcdMsg(String str){
   
 }
 
-// USe String constructor to "eat" static strings
+// Use String constructor to "eat" static strings
 #define say(c)      sayLcdMsg(String(F(c)));
+
 
 // debug will be defined as empty function when debug mode is off
 #define debug(c)    sayLcdMsg(String(F(c)));
@@ -188,7 +207,7 @@ inline void checkForSleep(){
     say("...Sleeping...");    
     delay(200);
 
-    delay(440);
+    delay(340);
 
     // Turn off all
     for(int i=0; i<stripeLength; i++) {
