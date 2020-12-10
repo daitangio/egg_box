@@ -65,7 +65,7 @@ tone() function uses at least timer2. Y
 ou can’t use PWM on Pin 3,11 when you use the tone() function an Arduino and Pin 9,10 on Arduino Mega.
 
 */
-///// GG DISANLED 
+///// GG DISBLED 
 /*
 NIL_IRQ_HANDLER(TIMER0_COMPA_vect) {
 
