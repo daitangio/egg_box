@@ -3,11 +3,12 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
-                "/usr/lib/avr/include/",
-                "/usr/share/arduino/hardware/arduino/cores/arduino",
+                "${workspaceFolder}/**",                
+                "/home/jj/egg_box/arduino-1.8.13/hardware/tools/avr/include",
+                "/home/jj/egg_box/arduino-1.8.13/hardware/arduino/avr/cores/arduino",                 
                 /* Variant /usr/share/arduino/hardware/arduino/variants/mega/pins_arduino.h */
-                "/usr/share/arduino/hardware/arduino/variants/standard"                
+                "/home/jj/egg_box/arduino-1.8.13/hardware/arduino/avr/variants/standard"
+                /*/home/jj/egg_box/arduino-1.8.13/hardware/arduino/avr/cores/arduino*/
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
