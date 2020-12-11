@@ -7,7 +7,7 @@ BOARD_SUB= atmega2560
 
 
 USER_LIB_PATH= ../libraries
-ARDUINO_LIBS = egg_utils LiquidCrystal_I2C Wire
+ARDUINO_LIBS = egg_utils LiquidCrystal_I2C Wire Eventually
  
 
 # add -DDEBUG -DDEBUG_LOG  for extra info
