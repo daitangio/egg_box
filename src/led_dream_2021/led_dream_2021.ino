@@ -29,7 +29,6 @@ Feature:
 #include <jj-log.h>
 #include <avr/sleep.h>
 #include "mem_free.h"
-#include <Eventually.h>
 
 // CHECK ON MEGA The I2C pins on the board are 20 and 21.
 #include <LiquidCrystal_I2C.h>
@@ -52,15 +51,15 @@ char runningMode = 1; // 1 = Start running, 0 = Start Sleeping
 
 int stripeLeds[] = { 12, 13,   9  };
 const int stripeLength=sizeof(stripeLeds)/sizeof(stripeLeds[0]);
-const int dual_mode_period=5;
 
+#include <Eventually.h>
 EvtManager mgr;
 
 
-// Declaration
-void checkForSleep();
 
 
+
+const int dual_mode_period=5;
 /**
  * LCD Status message printing
  * Also support a minimal scrolling mechianics
@@ -145,9 +144,9 @@ void sleepModeCheckCallback()
   {
     runningMode = 0;
     l("* Requesting Sleep...");
-    checkForSleep();
   }
-  
+  // Disable interrupt to be one time fire
+  detachInterrupt(digitalPinToInterrupt(wakeupButton));
 }
 
 
@@ -171,7 +170,9 @@ void lcdInit(){
 
 
 
-inline void checkForSleep(){
+
+/** Retrun true on sleep detect */
+inline bool checkForSleep(){
   if (runningMode == 0){
     /* For the sleep mode refer to https://thekurks.net/blog/2018/1/24/guide-to-arduino-sleep-mode
      * IT IS VERY VERY IMPORTANT to have some delay to let stabilize it
@@ -196,7 +197,6 @@ inline void checkForSleep(){
 
 
     sleep_enable();
-    // Low level attach: do not change!
     attachInterrupt(digitalPinToInterrupt(wakeupButton), wakeUp, LOW);
     set_sleep_mode(SLEEP_MODE_PWR_DOWN);
     delay(1000);
@@ -206,10 +206,14 @@ inline void checkForSleep(){
     runningMode = 1;
     delay(400);
 
-    lcdInit();
+    lcdInit();    
     
-    mgr.addListener(new  EvtPinListener(wakeupButton, (EvtAction)sleepModeCheckCallback) ); 
+    attachInterrupt(digitalPinToInterrupt(wakeupButton), sleepModeCheckCallback, CHANGE);    
+    return true;
+  }else{
+    return false;
   }
+  
 }
 
 /** Collaborative delay function.
@@ -226,50 +230,7 @@ inline void my_delay(int millis) {
   }
 }
 
-
-
-USE_EVENTUALLY_LOOP(mgr) // Use this instead of your loop() function.
-
-
-bool blink1() {
-  static bool state=LOW;
-  state = !state; // Switch light states
-  digitalWrite( stripeLeds[0], state); // Display the state
-  digitalWrite( stripeLeds[1], state); // Display the state
-  digitalWrite( stripeLeds[2], state); // Display the state
-  return false; // Allow the event chain to continue
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////////
-// the setup routine runs once when you press reset:
-void setup()
-{
-  lcdInit();
-  // initialize the digital pin as an output.
-  pinMode(aliveLed, OUTPUT);
-  pinMode(wakeupButton, INPUT_PULLUP);
-
-  for(int i=0; i<stripeLength; i++) {
-    pinMode(stripeLeds[i], OUTPUT);
-    analogWrite(stripeLeds[i], 0 );
-  }
-
-  mgr.addListener(new EvtTimeListener(1000, true,   (EvtAction)blink1)                 );
-  mgr.addListener(new  EvtPinListener(wakeupButton, (EvtAction)sleepModeCheckCallback) );
-
-  #ifdef DEBUG_LOG
-    Serial.begin(9600);
-    l("2021 Led Dreams");
-  #endif    
-}
-
-
-
-
-
-void oldloop()
+void loopold()
 {
   // We can start in any sleep state and all will work
 
@@ -339,6 +300,60 @@ void oldloop()
   }
 }
 
+
+bool blink1() {
+  static bool state=LOW;
+  state = !state; // Switch light states
+  digitalWrite( stripeLeds[0], state); // Display the state
+  digitalWrite( stripeLeds[1], state); // Display the state
+  digitalWrite( stripeLeds[2], state); // Display the state
+  return false; // Allow the event chain to continue
+}
+
+bool checkForSleep2(){
+  if(checkForSleep()==false){
+    say("No sleep yet");
+  }
+  return false;
+}
+
+bool statusMessages(){
+  String m=F("Run Stats:");
+  m.concat((float)(millis() / 1000));
+  sayLcdMsg(m);
+  return false;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// the setup routine runs once when you press reset:
+void setup()
+{
+  lcdInit();
+  // initialize the digital pin as an output.
+  pinMode(aliveLed, OUTPUT);
+  pinMode(wakeupButton, INPUT_PULLUP);
+
+  for(int i=0; i<stripeLength; i++) {
+    pinMode(stripeLeds[i], OUTPUT);
+    analogWrite(stripeLeds[i], 0 );
+  }
+
+  if(runningMode == 1){
+    // if the initial state is 1 it means we are not sleeping so we must enable the interrupt
+    attachInterrupt(digitalPinToInterrupt(wakeupButton), sleepModeCheckCallback, CHANGE);
+  }
+
+  mgr.addListener(new EvtTimeListener(44, true,   (EvtAction)blink1)                 );
+  mgr.addListener(new EvtTimeListener(88, true,   (EvtAction)blink1)                 );
+  mgr.addListener(new EvtTimeListener(900, true,   (EvtAction)checkForSleep2)                 );
+  //mgr.addListener(new EvtTimeListener(5000, true,   (EvtAction)statusMessages)                 );
+
+  #ifdef DEBUG_LOG
+    Serial.begin(9600);
+    l("2021 Led Dreams");
+  #endif    
+}
+USE_EVENTUALLY_LOOP(mgr) // Use this instead of your loop() function.
 
 
 
