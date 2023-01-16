@@ -23,10 +23,30 @@ To upload, plug-in an Arduino uno and type
 
     make upload
 
-### More advanced project: .... TBD
-A more "
+#### How it works
+The project used the midicsv program to convert midis to a set of static files.
+To install midicsv on Linux, issue
+
+    apt install midicsv
+
+Homepage: http://www.fourmilab.ch/webtools/midicsv/
+
+The program uses two competing threads on the same led group: the first play the music, the seconds fade the led in a cycle way.
+
+The resulting effect is like a strobo-system: leds fade in and out when no sound is in emitted, but pulse at rythm based on the note played.
 
 
+### The more advanced project: mega_lighting_box
+
+
+
+### More advanced project: led_dream_2021 TBD
+
+Led Dream uses a simpler approach than egg box and enable deep sleep for a always-on installation.
+
+
+
+### Other projects
 
 
 
