@@ -61,11 +61,11 @@ Arduino Mega
 Pins 4 and 13: controlled by timer0
 
 And about music:
-tone() function uses at least timer2. Y
-ou can’t use PWM on Pin 3,11 when you use the tone() function an Arduino and Pin 9,10 on Arduino Mega.
+tone() function uses at least timer2. 
+You can’t use PWM on Pin 3,11 when you use the tone() function an Arduino and Pin 9,10 on Arduino Mega.
 
 */
-///// GG DISBLED 
+///// GG DISABLED 
 /*
 NIL_IRQ_HANDLER(TIMER0_COMPA_vect) {
 

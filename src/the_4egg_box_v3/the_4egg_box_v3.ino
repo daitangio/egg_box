@@ -7,13 +7,18 @@
 #include <jj-log.h>
 // #define DEBUG yeppa
 
+/** WIRING */
+/** PIEZO SPEAKER */
 const int speakerOut=A5;
 
-/*** FADER**/
-int yellowLed = 9;           // the pin that the LED is attached to
-int greenLed=6;      // Reverse pin
-int blueLed=5;  //ledgroup 3 
-int redLed=10;  //PWM 3 get conflict with sound
+/*** LEDS **/
+int yellowLed = 9;   // the pin that the LED is attached to
+int greenLed=6;      // -- 
+                     // Green Led
+int blueLed=5;       // Ledgroup 3 
+int redLed=10;       // ----
+
+
 const int DelayTime=44; // 44 is good
 
 const float  durationBase=800;
