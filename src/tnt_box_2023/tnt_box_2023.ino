@@ -76,7 +76,7 @@ inline void sayLcdMsg(String str){
   lcd.clear();
   if ((super_counter % dual_mode_period) == 0) {
     lcd.setCursor(0,1);
-    lcd.print(F("Run Stats:"));
+    lcd.print(F("Tnt Box 2023"));
     lcd.print( (float)(millis() / 1000));
     lcd.print(F("s"));
     lcd.setCursor(0,2);    
@@ -111,7 +111,7 @@ inline void sayLcdMsg(String str){
     // Print mem free on top
 
     lcd.setCursor(0,0);
-    String memFree=String(F("v1.2.1 Mem:"));
+    String memFree=String(F("v1.2.2 Mem:"));
     memFree.concat(freeMemory());
     lcd.print(memFree);
   

@@ -1,5 +1,5 @@
 # Arduino IDE: 1.5.x
-ARDUINO_DIR = ../../arduino-1.8.13
+# ARDUINO_DIR = ../../arduino-1.8.13
 # We also need extra flags -DEXTRA_CPP_FEATURE -std=c++11 -std=gnu++11 
 
 BOARD_TAG= mega

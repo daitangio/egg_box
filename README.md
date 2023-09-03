@@ -40,10 +40,14 @@ The resulting effect is like a strobo-system: leds fade in and out when no sound
 
 
 
-### More advanced project: led_dream_2021 TBD
+### More advanced project: tnt_box_2023 
 
-Led Dream uses a simpler approach than egg box and enable deep sleep for a always-on installation.
+Feature:
+    - A 10x10cm box with a Display, a count down button and lights effect
+    - This version uses a simpler approach than egg box and enable deep sleep for a always-on installation.
 
+
+Refer to [specific readme](./src/tnt_box_2023/README_tnt_box.md) which include detailed build instructions
 
 
 ### Other projects
