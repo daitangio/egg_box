@@ -49,6 +49,22 @@ Feature:
 
 Refer to [specific readme](./src/tnt_box_2023/README_tnt_box.md) which include detailed build instructions
 
+### About ChNil from Greiman [7th October 2023]
+
+We tested  https://github.com/greiman/ChNil,
+revision f37322d7607bd38fc6804c43e98f68882f9868f7 from 2 Aug 2017
+to refresh our NilRTOS library
+
+The code is Nil version 2.0.0 from Stable Version 17.6 of ChibiOS.
+
+This code should be better than NilRTOS but:
+
+- The critical code (context switch) is the same of NilRTOS
+- No big advantage seen so far
+- The unused stack size function report wrong value(0)
+
+so we decided to put it aside for the meantime.
+
 
 ### Other projects
 
