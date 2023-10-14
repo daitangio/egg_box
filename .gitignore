@@ -4,3 +4,6 @@ build-mega*
 arduino-1.8.13*
 # Ignore mac
 *Arduino.App
+src/the_halloween_box_2023/profondorosso.csv
+src/the_halloween_box_2023/profondorosso.midi
+src/the_halloween_box_2023/._profondorosso.midi

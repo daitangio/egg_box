@@ -5,7 +5,7 @@
 #include <pitches_it.h>
 #include <NilRTOS.h>
 #include <jj-log.h>
-// #define DEBUG yeppa
+#define DEBUG yeppa
 
 /** WIRING */
 /** PIEZO SPEAKER */
@@ -90,49 +90,11 @@ const float eva[]  ={
                      
                   };
 
-
-const float beverlyhillsCop[] /*PROGMEM*/ ={ NOTE_FA4,1, 
-                      NOTE_LAS4 /*BEMOLLE*/ ,1, 
-                      
-                      NOTE_FA4,  D1_3,
-                      NOTE_FA4,  D1_3,
-                      NOTE_LAS4, D1_3, /*SI BEM*/
-                      
-                      NOTE_FA4,  1/2.0,
-                      NOTE_RES4, 1/2.0, /* MI BEM*/
-                      
-                      // Second 
-                      NOTE_FA4,1,
-                      NOTE_DO5,1,
-                      
-                      NOTE_FA4,D1_3,
-                      NOTE_FA4,D1_3,
-                      NOTE_DOS5,D1_3,
-                      
-                      NOTE_DOS5,HALF, // INEXACT....
-                      NOTE_LAS4,HALF, // LAB
-                       
-                      
-                      
-                      //THIRD
-                      NOTE_FA4,Q,
-                      NOTE_DO5,Q,
-                      NOTE_FA5,Q,
-                      NOTE_FA4,Q,
-                      
-                      NOTE_RES4,D1_3,     //MI bem                     
-                      NOTE_MI4,D1_3,
-                      NOTE_DO4,D1_3,
-                      
-                      
-                      NOTE_SOL4,HALF,
-                      NOTE_FA4,HALF,
-                      NOTE_FA4,2,
-                      //+ PAUSA                      
+// Obtained via convert midi
+const float profondoRosso[]={
+#include "profondo-rosso.h"
                       -1,-1,-1,-1
-                      
-                     
-                  };
+};
 
 
 
@@ -311,7 +273,7 @@ NIL_THREAD(Music, arg) {
   nilThdSleepMilliseconds(1000);  
   while(true){
     
-    playMusic(beverlyhillsCop);
+    // playMusic(profondoRosso);
     nilThdSleepMilliseconds(5000);  
     playMusic(eva);
     

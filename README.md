@@ -29,9 +29,18 @@ To install midicsv on Linux, issue
 
     apt install midicsv
 
-Homepage: http://www.fourmilab.ch/webtools/midicsv/
+On MacOs try
 
-The program uses two competing threads on the same led group: the first play the music, the seconds fade the led in a cycle way.
+    brew install midicsv
+
+Homepage: http://www.fourmilab.ch/webtools/midicsv/
+To convert a midi try something like
+
+
+
+
+## How it works
+The program uses two competing threads on the same led group: the first play the music, the seconds fade the led in a cyclic way.
 
 The resulting effect is like a strobo-system: leds fade in and out when no sound is in emitted, but pulse at rythm based on the note played.
 
