@@ -57,7 +57,12 @@
  *          is responsible for the context switch between 2 threads.
  * @note    The implementation of this code affects <b>directly</b> the context
  *          switch performance so optimize here as much as you can.
- *
+ 
+ * GG: Arduino uno chip is ATmega328P 
+ * https://en.wikipedia.org/wiki/ATmega328 
+ * https://en.wikipedia.org/wiki/Atmel_AVR_instruction_set
+ * ref https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7810-Automotive-Microcontrollers-ATmega328P_Datasheet.pdf
+ * 
  * @param[in] ntp       the thread to be switched in
  * @param[in] otp       the thread to be switched out
  */
@@ -84,8 +89,13 @@ void _port_switch(thread_t *ntp, thread_t *otp) {
   asm volatile ("push    r17");
   asm volatile ("push    r28");
   asm volatile ("push    r29");
-
+    
+  // R30, R31 is register Z 8-bit each
+  // The first 64 I/O registers are accessible through both the I/O and the data address space. 
+  // this instruction assign r30 <- r22
   asm volatile ("movw    r30, r22");
+    
+  // SP is 0x3E:0x3D so this instruction read the SP  
   asm volatile ("in      r0, 0x3d");
   asm volatile ("std     Z+0, r0");
   asm volatile ("in      r0, 0x3e");
